@@ -1,0 +1,50 @@
+Line 854:             'ta': {
+
+Line 855:                 'headerSubtitle': 'அர急சுAt்திய விநியோగத்திற்கான விரைவு分류 அமைப்பு',
+
+Line 856:                 'step_1_title': 'படி 1: நோயாளி தகவல்',
+
+Line 857:                 'step_2_title': 'படி 2: மூல நோக்கம் & அறிகுறிகள்',
+
+Line 858:                 'step_3_title': 'படி 3: மறுஆய்வு & சமர்ப்பிக்கவும்',
+
+Line 859:                 'patientName': 'நோயாளியின் பெயர்',
+
+Line 860:                 'patientAge': 'வயது',
+
+Line 861:                 'patientGender': 'பாலினம்',
+
+Line 862:                 'callerPhone': 'தொலைபேசி எண்',
+
+Line 863:                 'location': 'முகவரி',
+
+Line 864:                 'chief_complaint': 'மூல நோக்கம்',
+
+Line 865:                 'symptoms': 'பொருந்தக்கூடியவற்றை தேர்ந்தெடுக்கவும்',
+
+Line 866:                 'medicalHistory': 'மருத்துவ வரலாறு',
+
+Line 867:                 'symptomDuration': 'அறிகுறிகள் எவ்வளவு காலம் உள்ளன?',
+
+Line 868:                 'nextBtn': 'அடுத்தது',
+
+Line 869:                 'backBtn': 'பின்னே',
+
+Line 870:                 'submitBtn': 'சமர்ப்பிக்கவும் & விநியோகிக்கவும்',
+
+Line 871:                 'reviewSummary': 'சுருக்கம் மறுபரிசீலனை'
+
+Line 872:             },
+
+Line 873:             'kn': {
+
+Line 874:                 'headerSubtitle': 'জরুरintের वितरणContinuation जHस्त्वरत వ๏Classify सিస्टम',
+
+Line 875:                 'step_1_title': 'ಹಂತ 1: ರೋಗಿ ಮಾಹಿತಿ',
+
+Line 876:                 'step_2_title': 'ಹಂತ 2: ಮುಖ್ಯ ಆರೋಪ & ರೋಗ ಲಕ್ಷಣಗಳು',
+
+Line 877:                 'step_3_title': 'ಹಂತ 3: ಪರಿಶೀಲನೆ & ಸಲ್ಲಿಸು',
+
+Line 878:                 'patientName': 'ರೋಗಿಯ ಹೆಸರು',
+

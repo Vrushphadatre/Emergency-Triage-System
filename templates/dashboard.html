@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Dashboard - Emergency Triage System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 5px;
+            width: 100%;
+        }
+        .metric-card.primary::before { background: linear-gradient(90deg, #6a11cb, #2575fc); }
+        .metric-card.success::before { background: linear-gradient(90deg, #11998e, #38ef7d); }
+        .metric-card.danger::before { background: linear-gradient(90deg, #eb3349, #f45c43); }
+        .metric-card.warning::before { background: linear-gradient(90deg, #f2994a, #f2c94c); }
+        .metric-card.info::before { background: linear-gradient(90deg, #667eea, #764ba2); }
+        
+        .metric-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        .metric-value {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .metric-target {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+        .status-green { background: #28a745; }
+        .status-yellow { background: #ffc107; }
+        .status-red { background: #dc3545; }
+        
+        .dashboard-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .queue-status {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .queue-item {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .queue-count {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .queue-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .progress-green { background: linear-gradient(90deg, #11998e, #38ef7d); }
+        .progress-yellow { background: linear-gradient(90deg, #f2994a, #f2c94c); }
+        .progress-red { background: linear-gradient(90deg, #eb3349, #f45c43); }
+        
+        .refresh-btn {
+            background: #6a11cb;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .refresh-btn:hover {
+            background: #5a0db5;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+        }
+        .alert-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-box.danger {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Emergency Triage System Dashboard</h1>
+        <p>Real-time KPIs & System Monitoring</p>
+        <p class="timestamp" id="lastUpdate"></p>
+    </div>
+
+    <div id="alerts"></div>
+
+    <div class="metrics-grid">
+        <div class="metric-card primary">
+            <div class="metric-icon">📋</div>
+            <div class="metric-label">Total Cases</div>
+            <div class="metric-value" id="totalCases">0</div>
+            <div class="metric-target">All time</div>
+        </div>
+
+        <div class="metric-card success">
+            <div class="metric-icon">🚑</div>
+            <div class="metric-label">Emergency Cases</div>
+            <div class="metric-value" id="emergencyCases">0</div>
+            <div class="progress-bar">
+                <div class="progress-fill progress-red" id="emergencyPercent" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="metric-card info">
+            <div class="metric-icon">👩‍⚕️</div>
+            <div class="metric-label">Non-Emergency Cases</div>
+            <div class="metric-value" id="nonEmergencyCases">0</div>
+            <div class="progress-bar">
+                <div class="progress-fill progress-green" id="nonEmergencyPercent" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="metric-card success">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-label">Classification Accuracy</div>
+            <div class="metric-value" id="accuracy">--</div>
+            <div class="metric-target">Target: >95%</div>
+        </div>
+
+        <div class="metric-card danger">
+            <div class="metric-icon">⚠️</div>
+            <div class="metric-label">False Negatives</div>
+            <div class="metric-value" id="falseNegatives">0</div>
+            <div class="metric-target">Target: <2%</div>
+        </div>
+
+        <div class="metric-card warning">
+            <div class="metric-icon">🔄</div>
+            <div class="metric-label">Human Override Rate</div>
+            <div class="metric-value" id="overrideRate">--</div>
+            <div class="metric-target">Target: <10%</div>
+        </div>
+
+        <div class="metric-card info">
+            <div class="metric-icon">⏱️</div>
+            <div class="metric-label">Avg Handling Time</div>
+            <div class="metric-value" id="avgHandlingTime">--</div>
+            <div class="metric-target">Target: <3 min</div>
+        </div>
+
+        <div class="metric-card primary">
+            <div class="metric-icon">✅</div>
+            <div class="metric-label">System Status</div>
+            <div class="metric-value" style="font-size: 28px;">
+                OPERATIONAL
+                <span class="status-indicator status-green"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="section-title">
+            <span>📊 Current Queue Status</span>
+            <button class="refresh-btn" onclick="loadMetrics()">🔄 Refresh</button>
+        </div>
+        
+        <div class="queue-status">
+            <div class="queue-item">
+                <div class="queue-count" id="dispatcherQueue" style="color: #dc3545;">0</div>
+                <div class="queue-label">Dispatcher Queue</div>
+            </div>
+            <div class="queue-item">
+                <div class="queue-count" id="nurseQueue" style="color: #17a2b8;">0</div>
+                <div class="queue-label">Nurse Queue</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="section-title">
+            <span>🎯 KPI Targets vs Actual</span>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><strong>Non-Emergency Reduction</strong></span>
+                    <span id="reductionValue">TBD</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-green" id="reductionProgress" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">Target: 30% reduction</div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><strong>Emergency Classification Accuracy</strong></span>
+                    <span id="accuracyValue">--</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-yellow" id="accuracyProgress" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">Target: >95%</div>
+            </div>
+
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><strong>False Negative Rate</strong></span>
+                    <span id="falseNegValue">--</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-red" id="falseNegProgress" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">Target: <2%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="section-title">
+            <span>📋 Recent Patient Cases</span>
+            <button class="refresh-btn" onclick="refreshCases()">🔄 Refresh</button>
+        </div>
+        
+        <div id="casesContainer" style="margin-top: 15px; min-height: 200px;">
+            <p style="text-align: center; color: #999; padding: 20px;">Loading cases...</p>
+        </div>
+    </div>
+
+    <script>
+        async function refreshCases() {
+            loadRecentCases();
+        }
+
+        async function loadRecentCases() {
+            const container = document.getElementById('casesContainer');
+            
+            try {
+                console.log('Fetching cases from /api/active_cases...');
+                const response = await fetch('/api/active_cases');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (!data.cases || data.cases.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No cases submitted yet</p>';
+                    return;
+                }
+                
+                // Build HTML table
+                let html = `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border: 1px solid #ddd;">Case ID</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border: 1px solid #ddd;">Patient</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border: 1px solid #ddd;">Age</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border: 1px solid #ddd;">Phone</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border: 1px solid #ddd;">Complaint</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border: 1px solid #ddd;">Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.cases.forEach(caseData => {
+                    const riskBg = caseData.risk_level === 'high' ? '#ffebee' : 
+                                   caseData.risk_level === 'moderate' ? '#fff3e0' : '#e8f5e9';
+                    const riskColor = caseData.risk_level === 'high' ? '#c62828' : 
+                                      caseData.risk_level === 'moderate' ? '#e65100' : '#2e7d32';
+                    
+                    html += `
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 12px; border: 1px solid #ddd; font-size: 11px; font-family: monospace;">${caseData.case_id || '-'}</td>
+                            <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600;">${caseData.patient_name || 'Unknown'}</td>
+                            <td style="padding: 12px; border: 1px solid #ddd;">${caseData.patient_age || '-'}</td>
+                            <td style="padding: 12px; border: 1px solid #ddd;">${caseData.callback_phone || '-'}</td>
+                            <td style="padding: 12px; border: 1px solid #ddd;">${caseData.chief_complaint || '-'}</td>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: ${riskBg}; color: ${riskColor}; font-weight: bold; text-align: center; border-radius: 4px;">
+                                ${caseData.risk_level.toUpperCase()}
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+                console.log('Recent cases table rendered successfully');
+                
+            } catch (error) {
+                console.error('Error loading recent cases:', error);
+                container.innerHTML = `<p style="color: #c62828; padding: 20px;"><strong>Error loading cases:</strong> ${error.message}</p>`;
+            }
+        }
+
+        async function loadMetrics() {
+            try {
+                const response = await fetch('/dashboard/metrics');
+                const data = await response.json();
+                
+                // Update timestamp
+                document.getElementById('lastUpdate').textContent = 
+                    `Last updated: ${new Date().toLocaleString()}`;
+                
+                // Total cases
+                document.getElementById('totalCases').textContent = data.total_cases;
+                
+                // Emergency/Non-emergency
+                document.getElementById('emergencyCases').textContent = data.emergency_cases;
+                document.getElementById('nonEmergencyCases').textContent = data.non_emergency_cases;
+                
+                if (data.total_cases > 0) {
+                    const emergencyPct = (data.emergency_cases / data.total_cases * 100).toFixed(1);
+                    const nonEmergencyPct = (data.non_emergency_cases / data.total_cases * 100).toFixed(1);
+                    
+                    document.getElementById('emergencyPercent').style.width = emergencyPct + '%';
+                    document.getElementById('emergencyPercent').textContent = emergencyPct + '%';
+                    
+                    document.getElementById('nonEmergencyPercent').style.width = nonEmergencyPct + '%';
+                    document.getElementById('nonEmergencyPercent').textContent = nonEmergencyPct + '%';
+                }
+                
+                // Accuracy
+                document.getElementById('accuracy').textContent = 
+                    data.accuracy_pct !== 'N/A' ? data.accuracy_pct + '%' : 'N/A';
+                
+                // False negatives
+                document.getElementById('falseNegatives').textContent = data.false_negatives;
+                
+                // Override rate
+                document.getElementById('overrideRate').textContent = data.override_rate_pct + '%';
+                
+                // Handling time
+                const minutes = Math.floor(data.avg_handling_time_seconds / 60);
+                const seconds = data.avg_handling_time_seconds % 60;
+                document.getElementById('avgHandlingTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Queue lengths
+                document.getElementById('dispatcherQueue').textContent = 
+data.current_queue_lengths.dispatcher;
+                document.getElementById('nurseQueue').textContent = 
+                    data.current_queue_lengths.nurse;
+                
+                // Alerts
+                checkAlerts(data);
+                
+                // Progress bars
+                updateProgressBars(data);
+                
+                // Load recent cases
+                loadRecentCases();
+                
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+
+        function checkAlerts(data) {
+            const alertsDiv = document.getElementById('alerts');
+            const alerts = [];
+            
+            // Check false negatives
+            if (data.false_negatives > 0) {
+                alerts.push({
+                    type: 'danger',
+                    message: `⚠️ CRITICAL: ${data.false_negatives} false negative(s) detected. Immediate review required.`
+                });
+            }
+            
+            // Check override rate
+            if (data.override_rate_pct > 10) {
+                alerts.push({
+                    type: 'warning',
+                    message: `⚠️ High override rate (${data.override_rate_pct}%). Consider model retraining.`
+                });
+            }
+            
+            if (alerts.length > 0) {
+                alertsDiv.innerHTML = alerts.map(alert => `
+                    <div class="alert-box ${alert.type}">
+                        <strong>${alert.message}</strong>
+                    </div>
+                `).join('');
+            } else {
+                alertsDiv.innerHTML = '';
+            }
+        }
+
+        function updateProgressBars(data) {
+            // Accuracy progress
+            if (data.accuracy_pct !== 'N/A') {
+                document.getElementById('accuracyValue').textContent = data.accuracy_pct + '%';
+                document.getElementById('accuracyProgress').style.width = data.accuracy_pct + '%';
+                document.getElementById('accuracyProgress').textContent = data.accuracy_pct + '%';
+            }
+            
+            // False negative rate
+            const totalVerified = data.total_cases; // Simplified
+            if (totalVerified > 0) {
+                const fnRate = (data.false_negatives / totalVerified * 100).toFixed(1);
+                document.getElementById('falseNegValue').textContent = fnRate + '%';
+                document.getElementById('falseNegProgress').style.width = Math.min(fnRate, 100) + '%';
+                document.getElementById('falseNegProgress').textContent = fnRate + '%';
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadMetrics, 30000);
+        
+        // Initial load
+        loadMetrics();
+    </script>
+</body>
+</html>

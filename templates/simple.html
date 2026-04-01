@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Triage</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #667eea;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f9f9f9;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .alert.high-risk {
+            background: #ff4757;
+            color: white;
+            display: block;
+        }
+        .success {
+            background: #2ed573;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚑 Emergency Triage</h1>
+        
+        <div id="alertBox" class="alert"></div>
+        <div id="successBox" class="success"></div>
+
+        <form id="assessmentForm" onsubmit="submitForm(event)">
+            <!-- Patient Info -->
+            <div class="form-group">
+                <label>Patient Name *</label>
+                <input type="text" id="patientName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mobile Number *</label>
+                <input type="text" id="mobile" placeholder="10-digit number" maxlength="10" required>
+            </div>
+
+            <div class="form-group">
+                <label>Location *</label>
+                <input type="text" id="location" required>
+            </div>
+
+            <!-- Chief Complaint -->
+            <div class="form-group">
+                <label>Chief Complaint *</label>
+                <select id="complaint" onchange="checkComplaint()" required>
+                    <option value="">-- Select Complaint --</option>
+                    <option value="Chest pain">Chest pain</option>
+                    <option value="Breathing Difficulty">Breathing Difficulty</option>
+                    <option value="Unconscious / unresponsive patient">Unconscious / unresponsive patient</option>
+                    <option value="Fever">Fever</option>
+                    <option value="Headache">Headache</option>
+                    <option value="Pain in abdomen/stomach">Pain in abdomen/stomach</option>
+                    <option value="Diarrhea / Loose motions">Diarrhea / Loose motions</option>
+                    <option value="Vomiting">Vomiting</option>
+                    <option value="Cough & Cold">Cough & Cold</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <!-- Medical History -->
+            <div class="form-group">
+                <label>Medical History</label>
+                <textarea id="medicalHistory" rows="3" placeholder="Any conditions (optional)"></textarea>
+            </div>
+
+            <button type="submit">Submit Assessment</button>
+        </form>
+    </div>
+
+    <script>
+        function checkComplaint() {
+            const complaint = document.getElementById('complaint').value;
+            const emergencies = ['Chest pain', 'Breathing Difficulty', 'Unconscious / unresponsive patient'];
+            const alertBox = document.getElementById('alertBox');
+            
+            if (emergencies.includes(complaint)) {
+                alertBox.className = 'alert high-risk';
+                alertBox.innerHTML = '🚨 IMMEDIATE EMERGENCY - Ambulance will be dispatched!';
+            } else {
+                alertBox.className = 'alert';
+            }
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            
+            const data = {
+                patient_name: document.getElementById('patientName').value,
+                callback_phone: document.getElementById('mobile').value,
+                patient_address: document.getElementById('location').value,
+                chief_complaint: document.getElementById('complaint').value,
+                medical_history: document.getElementById('medicalHistory').value,
+                language: 'en'
+            };
+
+            fetch('/submit_assessment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                } else {
+                    const successBox = document.getElementById('successBox');
+                    successBox.style.display = 'block';
+                    successBox.innerHTML = `
+                        <h2>Assessment Complete!</h2>
+                        <p><strong>Case ID:</strong> ${result.case_id}</p>
+                        <p><strong>Risk Level:</strong> ${result.risk_level}</p>
+                        <p><strong>Risk Score:</strong> ${(result.risk_score * 100).toFixed(1)}%</p>
+                        ${result.ambulance_assigned ? '<p>🚑 Ambulance Dispatched - ETA: ' + result.estimated_arrival_time + ' minutes</p>' : ''}
+                    `;
+                    document.getElementById('assessmentForm').style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

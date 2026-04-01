@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Dispatch Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --light: #f5f6fa;
+            --dark: #2f3542;
+            --border: #dfe6e9;
+            --text: #555;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--text);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary), #764ba2);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+        }
+
+        .navbar-time {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 15px;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .metric-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .metric-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .metric-card.success {
+            border-left-color: var(--success);
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--dark);
+            color: white;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .case-item {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .case-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .case-item.high {
+            border-left-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .case-item.moderate {
+            border-left-color: var(--warning);
+            background: #fffaeb;
+        }
+
+        .case-item.low {
+            border-left-color: var(--success);
+            background: #f5ffeb;
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .case-id {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .case-risk {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .case-risk.high {
+            background: var(--danger);
+            color: white;
+        }
+
+        .case-risk.moderate {
+            background: var(--warning);
+            color: white;
+        }
+
+        .case-risk.low {
+            background: var(--success);
+            color: white;
+        }
+
+        .case-info {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .case-complaint {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .ambulance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ambulance-item:last-child {
+            border-bottom: none;
+        }
+
+        .ambulance-info {
+            flex: 1;
+        }
+
+        .ambulance-id {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .ambulance-status {
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-busy {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-enroute {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .detail-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .detail-panel.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .detail-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 13px;
+        }
+
+        .detail-value {
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee5a6f;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .small-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .risk-distribution {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 150px;
+            gap: 10px;
+        }
+
+        .risk-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bar:hover {
+            transform: scaleY(1.05);
+        }
+
+        .bar-label {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .bar-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .metrics-row {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .detail-content {
+                padding: 20px;
+            }
+        }
+
+        .refresh-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ed573;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🚑 Emergency Dispatch Control Center</h1>
+        <div>
+            <span class="refresh-indicator"></span>
+            <span class="navbar-time">Last Updated: <span id="lastUpdate">--:--</span></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Metrics -->
+        <div class="metrics-row">
+            <div class="metric-card danger">
+                <div class="metric-value" id="metricHigh">0</div>
+                <div class="metric-label">High Risk Cases</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-value" id="metricModerate">0</div>
+                <div class="metric-label">Moderate Risk Cases</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-value" id="metricDispatched">0</div>
+                <div class="metric-label">Ambulances Dispatched</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="metricAvailable">0</div>
+                <div class="metric-label">Available Ambulances</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Active Cases Queue -->
+            <div class="panel">
+                <div class="panel-header">
+                    📋 Active Cases Queue
+                    <span id="caseCount">0</span>
+                </div>
+                <div class="panel-content" id="casesList">
+                    <p style="text-align: center; color: var(--text); padding: 40px 0;">
+                        No active cases
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ambulance Status -->
+            <div class="panel">
+                <div class="panel-header">
+                    🚑 Ambulance Fleet Status
+                </div>
+                <div class="panel-content" id="ambulancesList">
+                    <p style="text-align: center; color: var(--text); padding: 40px 0;">
+                        Loading...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <div class="small-panel">
+                <div class="chart-title">📊 Risk Distribution</div>
+                <div class="risk-distribution">
+                    <div class="risk-bar">
+                        <div class="bar" id="barHigh" style="background: var(--danger); height: 0%;"></div>
+                        <div class="bar-value" id="barHighValue">0</div>
+                        <div class="bar-label">High</div>
+                    </div>
+                    <div class="risk-bar">
+                        <div class="bar" id="barModerate" style="background: var(--warning); height: 0%;"></div>
+                        <div class="bar-value" id="barModerateValue">0</div>
+                        <div class="bar-label">Moderate</div>
+                    </div>
+                    <div class="risk-bar">
+                        <div class="bar" id="barLow" style="background: var(--success); height: 0%;"></div>
+                        <div class="bar-value" id="barLowValue">0</div>
+                        <div class="bar-label">Low</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="chart-title">⏱️ Response Times (avg)</div>
+                <div style="padding: 40px 0; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--primary);">
+                        <span id="avgResponseTime">--</span> min
+                    </div>
+                    <div style="color: var(--text); font-size: 13px; margin-top: 10px;">
+                        Target: 8-10 minutes
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Detail Modal -->
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-content">
+            <div class="detail-header">
+                <div class="detail-title">Case Details</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+
+            <div id="detailContent">
+                <!-- Details will be populated here -->
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-primary" onclick="updateCaseStatus()">Update Status</button>
+                <button class="btn-secondary" onclick="closeDetail()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let casesList = [];
+        let ambulancesList = [];
+
+        function loadDashboard() {
+            // Load active cases
+            fetch('/api/active_cases')
+                .then(r => r.json())
+                .then(data => {
+                    casesList = data.cases || [];
+                    updateCasesDisplay();
+                })
+                .catch(e => console.error('Error loading cases:', e));
+
+            // Load ambulances
+            fetch('/api/ambulances')
+                .then(r => r.json())
+                .then(data => {
+                    ambulancesList = data.ambulances || [];
+                    updateAmbulancesDisplay();
+                })
+                .catch(e => console.error('Error loading ambulances:', e));
+
+            updateMetrics();
+            updateLastUpdate();
+        }
+
+        function updateCasesDisplay() {
+            const container = document.getElementById('casesList');
+            
+            if (!casesList || casesList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text); padding: 40px 0;">No submitted cases yet</p>';
+                return;
+            }
+
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 15px;">';
+            
+            casesList.forEach(c => {
+                const riskColor = c.risk_level === 'high' ? '#ff6b6b' : 
+                                  c.risk_level === 'moderate' ? '#ffa500' : '#51cf66';
+                const riskBg = c.risk_level === 'high' ? '#ffe0e0' : 
+                               c.risk_level === 'moderate' ? '#fff3e0' : '#e6ffed';
+                
+                // Ambulance type badge
+                const ambulanceTypeBadge = c.ambulance_type ? 
+                    `<span style="display: inline-block; background: ${c.ambulance_type === 'ALS' ? '#ff6b6b' : '#4ecdc4'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 10px;">${c.ambulance_type}</span>` : '';
+                
+                // Instructions summary
+                const instructions = c.prerarrival_instructions || {};
+                const instructionsList = (instructions.instructions || []).slice(0, 2).join('<br>• ');
+                const instructionsHtml = instructionsList ? `<div style="font-size: 11px; color: #666; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 4px; border-left: 2px solid ${riskColor};"><strong>Instructions:</strong><br>• ${instructionsList}${(instructions.instructions || []).length > 2 ? '<br>...</strong>' : '</strong>'}</div>` : '';
+                
+                html += `
+                    <div style="border: 2px solid ${riskColor}; border-radius: 8px; padding: 15px; background: ${riskBg};">
+                        <div style="font-weight: bold; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <strong>${c.patient_name || 'Unknown'}</strong>
+                            ${ambulanceTypeBadge}
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            <strong>Case ID:</strong> ${c.case_id}
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            <strong>Age/Gender:</strong> ${c.patient_age || '-'} / ${c.patient_gender || '-'}
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            <strong>Phone:</strong> ${c.callback_phone || '-'}
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            <strong>Address:</strong> ${c.patient_address || '-'}
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            <strong>Complaint:</strong> ${c.chief_complaint || '-'}
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            <strong>History:</strong> ${c.medical_history || '-'}
+                        </div>
+                        ${instructionsHtml}
+                        <div style="padding: 8px; background: ${riskColor}; color: white; text-align: center; border-radius: 4px; font-weight: bold; margin-top: 10px;">
+                            RISK: ${c.risk_level.toUpperCase()} (${(c.risk_score * 100).toFixed(1)}%)
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            document.getElementById('caseCount').textContent = casesList.length;
+        }
+
+        function updateAmbulancesDisplay() {
+            const container = document.getElementById('ambulancesList');
+            
+            if (ambulancesList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text); padding: 40px 0;">No ambulances</p>';
+                return;
+            }
+
+            container.innerHTML = ambulancesList.map(a => `
+                <div class="ambulance-item">
+                    <div class="ambulance-info">
+                        <div class="ambulance-id">${a.ambulance_id}</div>
+                        <div class="ambulance-status">${a.location || 'Location unknown'}</div>
+                    </div>
+                    <span class="status-badge status-${a.status.toLowerCase()}">${a.status}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateMetrics() {
+            const highRisk = casesList.filter(c => c.risk_level === 'high').length;
+            const moderate = casesList.filter(c => c.risk_level === 'moderate').length;
+            const dispatched = ambulancesList.filter(a => a.status === 'Enroute').length;
+            const available = ambulancesList.filter(a => a.status === 'Available').length;
+
+            document.getElementById('metricHigh').textContent = highRisk;
+            document.getElementById('metricModerate').textContent = moderate;
+            document.getElementById('metricDispatched').textContent = dispatched;
+            document.getElementById('metricAvailable').textContent = available;
+
+            // Risk bars
+            const total = casesList.length || 1;
+            document.getElementById('barHigh').style.height = (highRisk / total * 150) + 'px';
+            document.getElementById('barModerate').style.height = (moderate / total * 150) + 'px';
+            document.getElementById('barLow').style.height = ((total - highRisk - moderate) / total * 150) + 'px';
+
+            document.getElementById('barHighValue').textContent = highRisk;
+            document.getElementById('barModerateValue').textContent = moderate;
+            document.getElementById('barLowValue').textContent = total - highRisk - moderate;
+        }
+
+        function updateLastUpdate() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            document.getElementById('lastUpdate').textContent = time;
+        }
+
+        function viewCaseDetail(caseId) {
+            const caseData = casesList.find(c => c.case_id === caseId);
+            if (!caseData) return;
+
+            const html = `
+                <div class="detail-row">
+                    <div class="detail-label">Case ID:</div>
+                    <div class="detail-value"><strong>${caseData.case_id}</strong></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Patient:</div>
+                    <div class="detail-value">${caseData.patient_name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Age / Gender:</div>
+                    <div class="detail-value">${caseData.patient_age || '-'} / ${caseData.patient_gender || '-'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Chief Complaint:</div>
+                    <div class="detail-value"><strong>${caseData.chief_complaint}</strong></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Risk Level:</div>
+                    <div class="detail-value" style="color: ${caseData.risk_level === 'high' ? 'var(--danger)' : caseData.risk_level === 'moderate' ? 'var(--warning)' : 'var(--success)'}">
+                        <strong>${caseData.risk_level.toUpperCase()}</strong>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Risk Score:</div>
+                    <div class="detail-value">${(caseData.risk_score * 100).toFixed(1)}%</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value">${caseData.callback_phone}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">${caseData.patient_address || 'Unknown'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Medical History:</div>
+                    <div class="detail-value" style="font-size: 12px; color: var(--text);">${caseData.medical_history || 'None reported'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Ambulance:</div>
+                    <div class="detail-value">${caseData.ambulance_assigned ? 'Assigned' : 'Not assigned'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">ETA:</div>
+                    <div class="detail-value">${caseData.estimated_arrival_time ? caseData.estimated_arrival_time + ' min' : '-'}</div>
+                </div>
+            `;
+
+            document.getElementById('detailContent').innerHTML = html;
+            document.getElementById('detailPanel').classList.add('show');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('show');
+        }
+
+        function updateCaseStatus() {
+            alert('Status update feature coming soon');
+        }
+
+        // Load dashboard on startup
+        loadDashboard();
+
+        // Refresh every 5 seconds
+        setInterval(loadDashboard, 5000);
+
+        // Close detail modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDetail();
+        });
+
+        // Click outside modal to close
+        document.getElementById('detailPanel').addEventListener('click', (e) => {
+            if (e.target.id === 'detailPanel') closeDetail();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatcher Console - Emergency Triage</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #999;
+            font-size: 14px;
+        }
+        .queue-container {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .case-card {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .case-card.critical {
+            border-color: #dc3545;
+            animation: pulse 2s infinite;
+        }
+        .case-card.high {
+            border-color: #ffc107;
+        }
+        @keyframes pulse {
+            0%, 100% { border-color: #dc3545; }
+            50% { border-color: #ff6b7a; }
+        }
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .priority-CRITICAL {
+            background: #dc3545;
+            color: white;
+        }
+        .priority-HIGH {
+            background: #ffc107;
+            color: #000;
+        }
+        .case-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .info-label {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .risk-score {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .risk-high { color: #dc3545; }
+        .risk-medium { color: #ffc107; }
+        .risk-low { color: #28a745; }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-dispatch {
+            background: #28a745;
+            color: white;
+            flex: 1;
+        }
+        .btn-dispatch:hover {
+            background: #218838;
+        }
+        .btn-refer {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-refer:hover {
+            background: #5a6268;
+        }
+        .btn-details {
+            background: #007bff;
+            color: white;
+        }
+        .btn-details:hover {
+            background: #0069d9;
+        }
+        .refresh-btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚨 Emergency Dispatcher Console</h1>
+        <p>High-priority cases requiring immediate ambulance dispatch decision</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="queueCount">0</div>
+            <div class="stat-label">Cases in Queue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="criticalCount">0</div>
+            <div class="stat-label">Critical Priority</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgWait">--</div>
+            <div class="stat-label">Oldest Case Wait (min)</div>
+        </div>
+    </div>
+
+    <div class="queue-container">
+        <div class="queue-header">
+            <h2>Active Cases</h2>
+            <button class="refresh-btn" onclick="loadQueue()">🔄 Refresh</button>
+        </div>
+        
+        <div id="queueList"></div>
+    </div>
+
+    <script>
+        let operatorId = 'dispatcher_' + Math.random().toString(36).substr(2, 9);
+
+        async function loadQueue() {
+            try {
+                const response = await fetch('/dispatcher/queue');
+                const data = await response.json();
+                
+                // Update stats
+                document.getElementById('queueCount').textContent = data.count;
+                document.getElementById('criticalCount').textContent = 
+                    data.queue.filter(c => c.routing.priority === 'CRITICAL').length;
+                
+                // Render queue
+                renderQueue(data.queue);
+                
+            } catch (error) {
+                console.error('Error loading queue:', error);
+            }
+        }
+
+        function renderQueue(queue) {
+            const container = document.getElementById('queueList');
+            
+            if (queue.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 48px;">✅</div>
+                        <h3>No Cases in Queue</h3>
+                        <p>All emergency cases have been processed</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = queue.map(caseData => {
+                const c = caseData.case_data;
+                const p = caseData.prediction;
+                const r = caseData.routing;
+                
+                const riskClass = p.risk_score >= 0.85 ? 'risk-high' : 
+                                 p.risk_score >= 0.65 ? 'risk-medium' : 'risk-low';
+                
+                return `
+                    <div class="case-card ${r.priority.toLowerCase()}">
+                        <div class="case-header">
+                            <div>
+                                <h3 style="margin-bottom: 5px;">${caseData.case_id}</h3>
+                                <span class="priority-badge priority-${r.priority}">${r.priority}</span>
+                            </div>
+                            <div class="risk-score ${riskClass}">
+                                ${(p.risk_score * 100).toFixed(0)}%
+                            </div>
+                        </div>
+                        
+                        <div class="case-info">
+                            <div class="info-item">
+                                <div class="info-label">Chief Complaint</div>
+                                <div class="info-value">${c.chief_complaint || 'Not specified'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Age</div>
+                                <div class="info-value">${c.age || '?'} years</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Pain Level</div>
+                                <div class="info-value">${c.pain_level || '?'}/10</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Conscious</div>
+                                <div class="info-value">${c.conscious ? 'Yes' : 'NO - UNCONSCIOUS'}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #2a2a2a; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                            <div class="info-label">ML Assessment</div>
+                            <p style="margin-top: 5px; line-height: 1.6;">${p.reasoning}</p>
+                        </div>
+                        
+                        ${p.safety_override ? `
+                            <div style="background: #dc3545; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                                <strong>⚠️ SAFETY OVERRIDE APPLIED:</strong><br>
+                                ${p.safety_overrides ? p.safety_overrides.join(', ') : 'Critical symptoms detected'}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="action-buttons">
+                            <button class="btn-dispatch" onclick="makeDecision('${caseData.case_id}', 'dispatch_ambulance')">
+                                🚑 Dispatch Ambulance
+                            </button>
+                            <button class="btn-refer" onclick="makeDecision('${caseData.case_id}', 'refer_to_nurse')">
+                                Refer to Nurse
+                            </button>
+                            <button class="btn-details" onclick="viewDetails('${caseData.case_id}')">
+                                Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function makeDecision(caseId, decision) {
+            const notes = decision === 'refer_to_nurse' 
+                ? prompt('Override reason (required):') 
+                : prompt('Additional notes (optional):') || '';
+            
+            if (decision === 'refer_to_nurse' && !notes) {
+                alert('Override reason is required when not dispatching to emergency case');
+                return;
+            }
+            
+            try {
+                await fetch('/dispatcher/decision', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        case_id: caseId,
+                        decision: decision,
+                        operator_id: operatorId,
+                        notes: notes
+                    })
+                });
+                
+                alert('Decision recorded successfully');
+                loadQueue();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to record decision');
+            }
+        }
+
+        function viewDetails(caseId) {
+            window.open(`/api/case/${caseId}`, '_blank');
+        }
+
+        // Auto-refresh every 10 seconds
+        setInterval(loadQueue, 10000);
+        
+        // Initial load
+        loadQueue();
+    </script>
+</body>
+</html>

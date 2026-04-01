@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Medical Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --light: #f5f6fa;
+            --dark: #2f3542;
+            --border: #dfe6e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), #764ba2);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            display: flex;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .form-body {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+            padding-left: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--danger);
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #f9f9ff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .vital-card {
+            padding: 15px;
+            background: var(--light);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .vital-card.warning {
+            background: #fff3cd;
+            border-color: var(--warning);
+        }
+
+        .vital-card.danger {
+            background: #f8d7da;
+            border-color: var(--danger);
+        }
+
+        .vital-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--dark);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .vital-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vital-input input {
+            flex: 1;
+            margin: 0;
+            padding: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .vital-unit {
+            font-size: 12px;
+            color: #666;
+            min-width: 35px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #c8cdd8;
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .symptom-checkbox {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .symptom-checkbox input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .symptom-label {
+            display: block;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .symptom-checkbox input:checked ~ .symptom-label {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .results {
+            display: none;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 15px;
+        }
+
+        .result-details {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: var(--primary);
+            border-color: white;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .result-value {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .step {
+            text-align: center;
+            flex: 1;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--border);
+            border-radius: 50%;
+            font-weight: 700;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+
+        .step-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+
+            .form-body {
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .vitals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .symptom-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid var(--light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="language-selector">
+                <button class="lang-btn active" onclick="switchLanguage('en')">English</button>
+                <button class="lang-btn" onclick="switchLanguage('mr')">मराठी</button>
+                <button class="lang-btn" onclick="switchLanguage('ta')">தமிழ்</button>
+                <button class="lang-btn" onclick="switchLanguage('kn')">ಕನ್ನಡ</button>
+            </div>
+            <h1>🏥 Emergency Medical Assessment</h1>
+            <p id="headerSubtitle">Rapid triage system for emergency dispatch</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="form-body">
+            <!-- Alert Box -->
+            <div id="emergencyAlert" class="alert alert-danger"></div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-name">Patient Info</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-name">Chief Complaint</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-name">Review & Submit</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Patient Information -->
+            <div class="section active" id="step1">
+                <div class="section-title">Patient Information</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="required">Patient Name</label>
+                        <input type="text" id="patientName" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Age</label>
+                        <input type="number" id="patientAge" placeholder="Years" min="0" max="150">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="required">Mobile Number</label>
+                        <input type="tel" id="callerPhone" placeholder="10-digit number" maxlength="10" pattern="[6-9][0-9]{9}">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="gender">
+                            <option value="">-- Select --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">Location / Address</label>
+                    <input type="text" id="location" placeholder="Street address or landmark">
+                </div>
+
+                <div class="form-row">
+                    <button class="btn-secondary" onclick="previousSection()" disabled>Back</button>
+                    <button class="btn-primary" onclick="nextSection(1)">Next →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Chief Complaint -->
+            <div class="section" id="step2">
+                <div class="section-title">Chief Complaint</div>
+
+                <div class="form-group">
+                    <label class="required">Primary Complaint</label>
+                    <select id="chiefComplaint" onchange="updateComplaintDetails()">
+                        <option value="">-- Select Primary Complaint --</option>
+                        
+                        <!-- IMMEDIATE EMERGENCIES -->
+                        <optgroup label="IMMEDIATE EMERGENCIES">
+                            <option value="Breathing Difficulty">Breathing Difficulty</option>
+                            <option value="Chest pain">Chest Pain</option>
+                            <option value="Choking">Choking</option>
+                            <option value="Convulsions / Fits / Seizures">Convulsions / Fits / Seizures</option>
+                            <option value="Drowning / Near Drowning">Drowning / Near Drowning</option>
+                            <option value="Unconscious / unresponsive patient">Unconscious / Unresponsive Patient</option>
+                            <option value="Paralysis / stroke">Paralysis / Stroke</option>
+                            <option value="Hematemesis [vomiting blood]">Hematemesis [Vomiting Blood]</option>
+                            <option value="Confusion or altered mental status">Confusion or Altered Mental Status</option>
+                            <option value="Trauma - Head injury">Trauma - Head Injury</option>
+                            <option value="Trauma - Bleeding">Trauma - Bleeding</option>
+                            <option value="Trauma - Gunshot injury">Trauma - Gunshot Injury</option>
+                            <option value="Trauma - abdominal">Trauma - Abdominal</option>
+                            <option value="Trauma - chest wall">Trauma - Chest Wall</option>
+                            <option value="RTA (Road Traffic Accident)">RTA (Road Traffic Accident)</option>
+                            <option value="Road traffic accident: vehicle on fire">RTA - Vehicle on Fire</option>
+                            <option value="Road traffic accident: pinned / struck patient">RTA - Pinned / Struck Patient</option>
+                            <option value="Road traffic accident: vehicle off bridge/height">RTA - Vehicle Off Bridge/Height</option>
+                            <option value="Road traffic accident: auto - pedestrian">RTA - Auto Pedestrian</option>
+                            <option value="Road traffic accident: Pregnant lady">RTA - Pregnant Lady</option>
+                            <option value="Accident of boat/ship">Accident of Boat/Ship</option>
+                            <option value="Fall from Height">Fall from Height</option>
+                            <option value="Electrocution / lightning strike">Electrocution / Lightning Strike</option>
+                            <option value="Hazardous matter exposure">Hazardous Matter Exposure</option>
+                            <option value="Overdose / poisoning">Overdose / Poisoning</option>
+                            <option value="Heat stroke">Heat Stroke</option>
+                            <option value="Pregnancy - baby delivered">Pregnancy - Baby Delivered</option>
+                            <option value="Pregnancy - bleeding">Pregnancy - Bleeding</option>
+                            <option value="Pregnancy - abdominal pain / labor pain">Pregnancy - Labor Pain</option>
+                            <option value="Suicide attempt">Suicide Attempt</option>
+                            <option value="Attack / Assault">Attack / Assault</option>
+                        </optgroup>
+                        
+                        <!-- MODERATE EMERGENCIES -->
+                        <optgroup label="MODERATE EMERGENCIES">
+                            <option value="Burns">Burns</option>
+                            <option value="Animal Bite">Animal Bite</option>
+                            <option value="Allergic reaction">Allergic Reaction</option>
+                            <option value="Giddiness / Fainting">Giddiness / Fainting</option>
+                            <option value="Abnormal Behavior [Delirium]">Abnormal Behavior [Delirium]</option>
+                            <option value="Pain in abdomen / stomach">Pain in Abdomen / Stomach</option>
+                            <option value="Vomiting">Vomiting</option>
+                            <option value="Loosemotion-Vomiting">Loose Motion - Vomiting</option>
+                            <option value="Low sugar level">Low Sugar Level</option>
+                            <option value="Low body temperature">Low Body Temperature</option>
+                            <option value="Hypertension">Hypertension</option>
+                            <option value="Psychiatric problems">Psychiatric Problems</option>
+                            <option value="Eye pain">Eye Pain</option>
+                            <option value="Child patient / Pediatric patient">Child Patient / Pediatric</option>
+                        </optgroup>
+                        
+                        <!-- ROUTINE COMPLAINTS -->
+                        <optgroup label="OTHER COMPLAINTS">
+                            <option value="Headache">Headache</option>
+                            <option value="Dizziness">Dizziness</option>
+                            <option value="Fever">Fever</option>
+                            <option value="Cough & Cold">Cough & Cold</option>
+                            <option value="Throat Infection">Throat Infection</option>
+                            <option value="Back Pain">Back Pain</option>
+                            <option value="Joint Pain-Body Movement Difficulty">Joint Pain - Body Movement Difficulty</option>
+                            <option value="Body Pain / Swelling">Body Pain / Swelling</option>
+                            <option value="Toothache / Dental Pain">Toothache / Dental Pain</option>
+                            <option value="Ear Pain / Infection">Ear Pain / Infection</option>
+                            <option value="Eye pain">Eye Pain</option>
+                            <option value="Body Itching">Body Itching</option>
+                            <option value="Acidity">Acidity</option>
+                            <option value="Gastritis">Gastritis</option>
+                            <option value="Diarrhea / Loose motions">Diarrhea / Loose Motions</option>
+                            <option value="Weakness">Weakness</option>
+                            <option value="Numbness">Numbness</option>
+                            <option value="Vertigo">Vertigo</option>
+                            <option value="Anemia">Anemia</option>
+                            <option value="Skin Infection">Skin Infection</option>
+                            <option value="Fungal Infection">Fungal Infection</option>
+                            <option value="Worm Infection">Worm Infection</option>
+                            <option value="Mouth Ulcer / Infection">Mouth Ulcer / Infection</option>
+                            <option value="Urine Problem">Urine Problem</option>
+                            <option value="Traumatic Injury">Traumatic Injury</option>
+                            <option value="BP Checkup">BP Checkup</option>
+                            <option value="Drop Back Call">Drop Back Call</option>
+                            <option value="Corona">Corona</option>
+                            <option value="Other">Other</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Associated Symptoms</label>
+                    <div class="symptom-grid" id="symptomsGrid">
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" name="symptoms" value="Chest pain">
+                            <label class="symptom-label">Chest Pain</label>
+                        </div>
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" name="symptoms" value="Shortness of breath">
+                            <label class="symptom-label">SOB</label>
+                        </div>
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" name="symptoms" value="Dizziness">
+                            <label class="symptom-label">Dizziness</label>
+                        </div>
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" name="symptoms" value="Nausea">
+                            <label class="symptom-label">Nausea</label>
+                        </div>
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" name="symptoms" value="Confusion">
+                            <label class="symptom-label">Confusion</label>
+                        </div>
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" name="symptoms" value="Pale/Clammy skin">
+                            <label class="symptom-label">Pale Skin</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Duration of Complaint</label>
+                    <select id="duration">
+                        <option value="">-- Select Duration --</option>
+                        <option value="0-15 minutes">0-15 minutes (Acute)</option>
+                        <option value="15-60 minutes">15-60 minutes</option>
+                        <option value="1-6 hours">1-6 hours</option>
+                        <option value="6-24 hours">6-24 hours</option>
+                        <option value="More than 24 hours">More than 24 hours</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Medical History</label>
+                    <textarea id="medicalHistory" placeholder="Known conditions, allergies, medications, previous surgeries..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <button class="btn-secondary" onclick="previousSection()">← Back</button>
+                    <button class="btn-primary" onclick="nextSection(2)">Next →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Review & Submit -->
+            <div class="section" id="step3">
+                <div class="section-title">Review & Submit</div>
+
+                <div id="summary" class="result-details" style="margin-bottom: 25px;">
+                    <div class="result-item">
+                        <span class="result-label">Patient:</span>
+                        <span class="result-value" id="summaryName">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Age / Gender:</span>
+                        <span class="result-value" id="summaryAgeGender">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Chief Complaint:</span>
+                        <span class="result-value" id="summaryComplaint">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Location:</span>
+                        <span class="result-value" id="summaryLocation">-</span>
+                    </div>
+                </div>
+
+                <div id="emergencyFinal" class="alert alert-danger" style="display: none;">
+                    <strong>🚨 IMMEDIATE EMERGENCY ALERT</strong><br>
+                    This case will be dispatched as HIGH PRIORITY with immediate ambulance assignment.
+                </div>
+
+                <div class="form-row">
+                    <button class="btn-secondary" onclick="previousSection()">← Back</button>
+                    <button class="btn-primary" onclick="submitAssessment()">📞 Submit & Dispatch</button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing assessment...</p>
+            </div>
+
+            <!-- Results Display -->
+            <div class="results" id="results">
+                <div class="result-icon" id="resultIcon">✓</div>
+                <div class="result-title" id="resultTitle">Assessment Complete</div>
+                <div class="result-details">
+                    <div class="result-item">
+                        <span class="result-label">Case ID:</span>
+                        <span class="result-value" id="caseId">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Risk Level:</span>
+                        <span class="result-value" id="riskLevel">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Risk Score:</span>
+                        <span class="result-value" id="riskScore">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Ambulance Status:</span>
+                        <span class="result-value" id="ambulanceStatus">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">ETA:</span>
+                        <span class="result-value" id="eta">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Routed To:</span>
+                        <span class="result-value" id="routedTo">-</span>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="resetForm()" style="margin-top: 20px; width: 100%;">New Assessment</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+        let currentLanguage = 'en';
+
+        // Marathi translations for labels
+        const translations = {
+            'en': {
+                'headerSubtitle': 'Rapid triage system for emergency dispatch',
+                'step_1_title': 'Step 1: Patient Information',
+                'step_2_title': 'Step 2: Chief Complaint & Symptoms',
+                'step_3_title': 'Step 3: Review & Submit',
+                'patientName': 'Patient Name',
+                'patientAge': 'Age',
+                'patientGender': 'Gender',
+                'callerPhone': 'Phone Number',
+                'location': 'Address',
+                'chief_complaint': 'Chief Complaint',
+                'symptoms': 'Select all that apply',
+                'medicalHistory': 'Medical History',
+                'symptomDuration': 'How long have symptoms been present?',
+                'nextBtn': 'Next',
+                'backBtn': 'Back',
+                'submitBtn': 'Submit & Dispatch',
+                'reviewSummary': 'Review Summary'
+            },
+            'mr': {
+                'headerSubtitle': 'आपत्कालीन डिस्पॅच साठी द्रुत वर्गीकरण प्रणाली',
+                'step_1_title': 'पद्धति 1: रोगीची माहिती',
+                'step_2_title': 'पद्धति 2: मुख्य तक्रार व लक्षणे',
+                'step_3_title': 'पद्धति 3: पुनरावलोकन व सादर करा',
+                'patientName': 'रोगीचे नाव',
+                'patientAge': 'वय',
+                'patientGender': 'लिंग',
+                'callerPhone': 'फोन नंबर',
+                'location': 'पत्ता',
+                'chief_complaint': 'मुख्य तक्रार',
+                'symptoms': 'सर्व लागू असणारे निवडा',
+                'medicalHistory': 'वैद्यकीय इतिहास',
+                'symptomDuration': 'लक्षणे किती काळ आहे?',
+                'nextBtn': 'पुढे',
+                'backBtn': 'मागे',
+                'submitBtn': 'सादर करा व डिस्पॅच करा',
+                'reviewSummary': 'सारांश पुनरावलोकन'
+            },
+            'ta': {
+                'headerSubtitle': 'Emergency dispatch system',
+                'step_1_title': 'படி 1: நோயாளி தகவல்',
+                'step_2_title': 'படி 2: மூல நோக்கம் & அறிகுறிகள்',
+                'step_3_title': 'படி 3: மறுஆய்வு & சமர்ப்பிக்கவும்',
+                'patientName': 'நோயாளியின் பெயர்',
+                'patientAge': 'வயது',
+                'patientGender': 'பாலினம்',
+                'callerPhone': 'தொலைபேசி எண்',
+                'location': 'முகவரி',
+                'chief_complaint': 'மூல நோக்கம்',
+                'symptoms': 'பொருந்தக்கூடியவற்றை தேர்ந்தெடுக்கவும்',
+                'medicalHistory': 'மருத்துவ வரலாறு',
+                'symptomDuration': 'அறிகுறிகள் எவ்வளவு காலம் உள்ளன?',
+                'nextBtn': 'அடுத்தது',
+                'backBtn': 'பின்னே',
+                'submitBtn': 'சமர்ப்பிக்கவும் & விநியோகிக்கவும்',
+                'reviewSummary': 'சுருக்கம் மறுபரிசீலனை'
+            },
+            'kn': {
+                'headerSubtitle': 'Emergency dispatch system',
+                'step_1_title': 'ಹಂತ 1: ರೋಗಿ ಮಾಹಿತಿ',
+                'step_2_title': 'ಹಂತ 2: ಮುಖ್ಯ ಆರೋಪ & ರೋಗ ಲಕ್ಷಣಗಳು',
+                'step_3_title': 'ಹಂತ 3: ಪರಿಶೀಲನೆ & ಸಲ್ಲಿಸು',
+                'patientName': 'ರೋಗಿಯ ಹೆಸರು',
+                'patientAge': 'ವಯಸ್ಸು',
+                'patientGender': 'ಪ್ರವೃತ್ತಿ',
+                'callerPhone': 'ಫೋನ್ ಸಂಖ್ಯೆ',
+                'location': 'ವಿಳಾಸ',
+                'chief_complaint': 'ಮುಖ್ಯ ಆರೋಪ',
+                'symptoms': 'ಅನ್ವಯವಾಗುವ ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆ ಮಾಡಿ',
+                'medicalHistory': 'ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ',
+                'symptomDuration': 'ರೋಗ ಲಕ್ಷಣಗಳು ಎಷ್ಟು ಕಾಲ ಇದೆ?',
+                'nextBtn': 'ಮುಂದೆ',
+                'backBtn': 'ಹಿಂದೆ',
+                'submitBtn': 'ಸಲ್ಲಿಸು & ವಿತರಣೆ ಮಾಡು',
+                'reviewSummary': 'ಸಾರಾಂಶ ಪರಿಶೀಲನೆ'
+            }
+        };
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update button styling
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update UI text
+            document.getElementById('headerSubtitle').textContent = translations[lang]['headerSubtitle'];
+            
+            // Update form labels
+            const labels = {
+                'step1-label': 'step_1_title',
+                'step2-label': 'step_2_title',
+                'step3-label': 'step_3_title',
+            };
+            
+            for (let id in labels) {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.textContent = translations[lang][labels[id]];
+                }
+            }
+            
+            // Update placeholders and labels
+            const inputs = {
+                'patientName': 'patientName',
+                'patientAge': 'patientAge',
+                'gender': 'patientGender',
+                'callerPhone': 'callerPhone',
+                'location': 'location',
+                'chiefComplaint': 'chief_complaint',
+                'medicalHistory': 'medicalHistory',
+            };
+            
+            for (let inputId in inputs) {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    const labelKey = inputs[inputId];
+                    const label = input.previousElementSibling;
+                    if (label && label.tagName === 'LABEL') {
+                        label.textContent = translations[lang][labelKey];
+                    }
+                }
+            }
+            
+            console.log('Language switched to:', lang);
+        }
+
+        // Initialize pain level display
+        document.getElementById('painLevel').addEventListener('input', (e) => {
+            document.getElementById('painValue').textContent = e.target.value;
+        });
+
+        function nextSection(step) {
+            if (validateStep(step)) {
+                currentStep++;
+                updateStepIndicator();
+                updateProgress();
+                
+                // Populate summary when moving to step 3
+                if (currentStep === 3) {
+                    updateSummary();
+                }
+            }
+        }
+
+        function previousSection() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepIndicator();
+                updateProgress();
+            }
+        }
+
+        function updateStepIndicator() {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${currentStep}`).classList.add('active');
+
+            document.querySelectorAll('.step').forEach((s, i) => {
+                if (i + 1 <= currentStep) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function validateStep(step) {
+            const errors = [];
+
+            if (step === 1) {
+                if (!document.getElementById('patientName').value.trim()) errors.push('Patient name required');
+                if (!document.getElementById('patientAge').value) errors.push('Age required');
+                if (!document.getElementById('callerPhone').value.trim()) errors.push('Phone number required');
+                if (!document.getElementById('location').value.trim()) errors.push('Location required');
+            } else if (step === 2) {
+                if (!document.getElementById('chiefComplaint').value) errors.push('Chief complaint required');
+            }
+
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                return false;
+            }
+            return true;
+        }
+
+        function updateComplaintDetails() {
+            const complaint = document.getElementById('chiefComplaint').value;
+            checkEmergency(complaint);
+        }
+
+        function checkEmergency(complaint) {
+            const emergencies = [
+                'Chest pain', 'Breathing Difficulty', 'Unconscious',
+                'Severe Bleeding', 'Trauma', 'Seizure', 'Poisoning'
+            ];
+
+            const alert = document.getElementById('emergencyAlert');
+            if (emergencies.some(e => complaint.includes(e))) {
+                alert.textContent = '🚨 IMMEDIATE EMERGENCY - Ambulance will be dispatched upon submission!';
+                alert.classList.add('show');
+            } else {
+                alert.classList.remove('show');
+            }
+        }
+
+        function updateSummary() {
+            document.getElementById('summaryName').textContent = document.getElementById('patientName').value || '-';
+            const age = document.getElementById('patientAge').value;
+            const gender = document.getElementById('gender').value;
+            document.getElementById('summaryAgeGender').textContent = `${age ? age : '-'} / ${gender || '-'}`;
+            document.getElementById('summaryComplaint').textContent = document.getElementById('chiefComplaint').value || '-';
+            document.getElementById('summaryLocation').textContent = document.getElementById('location').value || '-';
+
+            const complaint = document.getElementById('chiefComplaint').value;
+            const emergencies = ['Chest pain', 'Breathing Difficulty', 'Unconscious', 'Severe Bleeding', 'Trauma', 'Seizure', 'Poisoning'];
+            const finalAlert = document.getElementById('emergencyFinal');
+            if (emergencies.some(e => complaint.includes(e))) {
+                finalAlert.style.display = 'block';
+            } else {
+                finalAlert.style.display = 'none';
+            }
+        }
+
+        function submitAssessment() {
+            updateSummary();
+
+            // If not on final step, go to next step
+            if (currentStep < totalSteps) {
+                nextSection(currentStep);
+                updateSummary();
+                return;
+            }
+
+            showLoading(true);
+
+            const assessmentData = {
+                patient_name: document.getElementById('patientName').value,
+                callback_phone: document.getElementById('callerPhone').value,
+                patient_address: document.getElementById('location').value,
+                patient_age: parseInt(document.getElementById('patientAge').value),
+                patient_gender: document.getElementById('gender').value,
+                chief_complaint: document.getElementById('chiefComplaint').value,
+                medical_history: document.getElementById('medicalHistory').value,
+                language: currentLanguage,
+                patient_known: true,
+                is_unidentified: false,
+                symptom_duration: document.getElementById('duration').value
+            };
+
+            console.log('Submitting assessment:', assessmentData);
+
+            fetch('/submit_assessment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(assessmentData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('Result:', result);
+                showLoading(false);
+                displayResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showLoading(false);
+                alert('Error: ' + error.message);
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+            document.getElementById('step3').style.display = show ? 'none' : 'block';
+        }
+
+        function displayResults(result) {
+            if (result.error) {
+                alert('Error: ' + result.error);
+                return;
+            }
+
+            const riskColorMap = {
+                'high': '🔴 HIGH RISK',
+                'moderate': '🟡 MODERATE',
+                'low': '🟢 LOW RISK'
+            };
+
+            document.getElementById('caseId').textContent = result.case_id;
+            
+            // Add patient information display
+            if (!document.getElementById('resultPatientName')) {
+                const resultDetails = document.getElementById('resultDetails') || document.querySelector('.result-details');
+                if (resultDetails) {
+                    const patientInfoHtml = `
+                        <div class="result-item">
+                            <span class="result-label">Patient Name:</span>
+                            <span class="result-value" id="resultPatientName">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Age / Gender:</span>
+                            <span class="result-value" id="resultAgeGender">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Chief Complaint:</span>
+                            <span class="result-value" id="resultComplaint">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Phone:</span>
+                            <span class="result-value" id="resultPhone">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Address:</span>
+                            <span class="result-value" id="resultAddress">-</span>
+                        </div>
+                    `;
+                    const firstItem = resultDetails.querySelector('.result-item');
+                    if (firstItem) {
+                        firstItem.insertAdjacentHTML('beforebegin', patientInfoHtml);
+                    }
+                }
+            }
+            
+            // Fill in patient information
+            document.getElementById('resultPatientName').textContent = result.patient_name || '-';
+            document.getElementById('resultAgeGender').textContent = 
+                `${result.patient_age || '-'} / ${result.patient_gender || '-'}`;
+            document.getElementById('resultComplaint').textContent = result.chief_complaint || '-';
+            document.getElementById('resultPhone').textContent = result.callback_phone || '-';
+            document.getElementById('resultAddress').textContent = result.patient_address || '-';
+            
+            document.getElementById('riskLevel').textContent = riskColorMap[result.risk_level] || result.risk_level;
+            document.getElementById('riskScore').textContent = (result.risk_score * 100).toFixed(1) + '%';
+            document.getElementById('ambulanceStatus').textContent = result.ambulance_assigned ? '✓ DISPATCHED' : '✗ Not Required';
+            document.getElementById('eta').textContent = result.estimated_arrival_time ? result.estimated_arrival_time + ' min' : 'N/A';
+            document.getElementById('routedTo').textContent = result.routed_to || 'Queue';
+
+            document.getElementById('resultIcon').textContent = result.risk_level === 'high' ? '🚑' : '✓';
+            document.getElementById('resultTitle').textContent = result.risk_level === 'high' ? 'EMERGENCY - Ambulance Dispatched!' : 'Assessment Complete';
+
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById('results').classList.add('show');
+        }
+
+        function resetForm() {
+            document.getElementById('results').classList.remove('show');
+            document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], select, textarea').forEach(el => {
+                el.value = el.type === 'number' && el.id === 'painLevel' ? '0' : '';
+            });
+            currentStep = 1;
+            updateStepIndicator();
+            updateProgress();
+        }
+    </script>
+</body>
+</html>

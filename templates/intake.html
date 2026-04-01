@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Triage Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .lang-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .content {
+            padding: 40px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group select option {
+            padding: 10px;
+        }
+
+        .required-asterisk {
+            color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Toggle Button Styles */
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Emergency Alert Box */
+        .emergency-alert {
+            background: #ff4757;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        .emergency-alert.show {
+            display: block;
+        }
+
+        .unidentified-badge {
+            background: #ffa502;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+            margin-bottom: 15px;
+        }
+
+        .unidentified-badge.show {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(255, 71, 87, 0);
+            }
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .progress-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #667eea;
+            transform: scale(1.3);
+        }
+
+        .progress-dot.completed {
+            background: #27ae60;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-screen {
+            text-align: center;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .risk-high {
+            background: #e74c3c;
+        }
+
+        .risk-moderate {
+            background: #f39c12;
+        }
+
+        .risk-low {
+            background: #27ae60;
+        }
+
+        .result-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .ambulance-info {
+            background: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .ambulance-info strong {
+            color: #27ae60;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #1976D2;
+        }
+
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .lang-toggle {
+                top: 10px;
+                right: 10px;
+            }
+
+            .lang-btn {
+                font-size: 10px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <div class="lang-toggle">
+                <button class="lang-btn active" onclick="setLanguage('en')">🇬🇧 EN</button>
+                <button class="lang-btn" onclick="setLanguage('mr')">🇮🇳 मराठी</button>
+            </div>
+            <h1 id="headerTitle">Emergency Triage Assessment</h1>
+            <p id="headerSubtitle">Providing quick and accurate emergency response</p>
+        </div>
+
+        <div class="content">
+            <!-- Section 1: Patient Details -->
+            <div class="form-section active" id="section1">
+                <div class="progress-indicator">
+                    <div class="progress-dot completed"></div>
+                    <div class="progress-dot active"></div>
+                    <div class="progress-dot"></div>
+                </div>
+
+                <h2 class="section-title" id="sectionTitle1">Patient Information</h2>
+
+                <!-- Patient Known Toggle -->
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label id="labelPatientKnown">Do you know the patient?</label>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button type="button" class="toggle-btn active" id="patientKnownYes" onclick="setPatientMode(true)">
+                            ✓ Yes, I know them
+                        </button>
+                        <button type="button" class="toggle-btn" id="patientKnownNo" onclick="setPatientMode(false)">
+                            ⚠️ No, Bystander/Unknown
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="patientNameGroup">
+                    <label for="patientName">
+                        <span id="labelName">Patient Name</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="text" id="patientName" placeholder="Enter full name" maxlength="100">
+                    <div class="error-message" id="errorName"></div>
+                </div>
+
+                <div class="form-group" id="callerNameGroup" style="display: none;">
+                    <label for="callerName">
+                        <span id="labelCallerName">Your Name (Caller)</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="text" id="callerName" placeholder="Your full name" maxlength="100">
+                    <div class="help-text">Who is reporting this emergency?</div>
+                    <div class="error-message" id="errorCallerName"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mobileNumber">
+                        <span id="labelMobile">Mobile Number</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="tel" id="mobileNumber" placeholder="10-digit number" maxlength="10" pattern="[0-9]{10}">
+                    <div class="help-text" id="helpMobile">10-digit number (e.g., 9876543210)</div>
+                    <div class="error-message" id="errorMobile"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="currentLocation">
+                        <span id="labelLocation">Current Location</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="text" id="currentLocation" placeholder="Enter address or landmark">
+                    <div class="help-text" id="helpLocation">Street address or nearest landmark</div>
+                    <div class="error-message" id="errorLocation"></div>
+                </div>
+
+                <!-- Optional Patient Age -->
+                <div class="form-group">
+                    <label for="patientAge">
+                        <span id="labelAge">Patient Age (years)</span>
+                        <span style="color: #999; font-size: 12px;">(Optional)</span>
+                    </label>
+                    <input type="number" id="patientAge" placeholder="Age in years" min="0" max="150">
+                    <div class="error-message" id="errorAge"></div>
+                </div>
+
+                <!-- Optional Gender -->
+                <div class="form-group">
+                    <label id="labelGender">
+                        <span>Patient Gender</span>
+                        <span style="color: #999; font-size: 12px;">(Optional)</span>
+                    </label>
+                    <select id="patientGender">
+                        <option value="">-- Not specified --</option>
+                        <option value="male">Male / पुरुष</option>
+                        <option value="female">Female / स्त्री</option>
+                        <option value="other">Other / अन्य</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="validateAndMoveToSection(1, 2)" id="btnNext1">
+                        <span id="btnNextText">Continue →</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 2: Chief Complaint -->
+            <div class="form-section" id="section2">
+                <div class="progress-indicator">
+                    <div class="progress-dot completed"></div>
+                    <div class="progress-dot completed"></div>
+                    <div class="progress-dot active"></div>
+                </div>
+
+                <h2 class="section-title" id="sectionTitle2">Chief Complaint & Symptoms</h2>
+
+                <!-- Unidentified Patient Badge -->
+                <div class="unidentified-badge" id="unidentifiedBadge">
+                    ⚠️ UNIDENTIFIED PATIENT - Bystander Report
+                </div>
+
+                <!-- IMMEDIATE EMERGENCY ALERT -->
+                <div class="emergency-alert" id="emergencyAlert">
+                    🚨 IMMEDIATE EMERGENCY - Ambulance dispatching without delay!
+                </div>
+
+                <div class="info-box" id="infoBoxComplaint">
+                    ℹ️ Please select your primary health concern below
+                </div>
+
+                <div class="form-group">
+                    <label for="chiefComplaint">
+                        <span id="labelChiefComplaint">Chief Complaint</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <select id="chiefComplaint" onchange="updateDynamicQuestions()">
+                        <option value="">-- Select complaint --</option>
+                    </select>
+                    <div class="error-message" id="errorComplaint"></div>
+                </div>
+
+                <!-- Dynamic Questions Container -->
+                <div id="dynamicQuestionsContainer"></div>
+
+                <div class="form-group">
+                    <label for="medicalHistory">
+                        <span id="labelMedicalHistory">Medical History</span>
+                    </label>
+                    <textarea id="medicalHistory" placeholder="Any existing conditions? (diabetes, asthma, heart disease, etc.)"></textarea>
+                    <div class="help-text" id="helpMedicalHistory">List any ongoing medical conditions or allergies</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="patientAge">
+                        <span id="labelAge">Age (years)</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="number" id="patientAge" min="0" max="150" placeholder="Enter age">
+                    <div class="error-message" id="errorAge"></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="currentSection = 1; showSection(1)" id="btnBack">
+                        <span id="btnBackText">← Back</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="submitIntake()" id="btnSubmit">
+                        <span id="btnSubmitText">Submit Assessment</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="form-section" id="sectionResults">
+                <div class="results-screen">
+                    <h2 id="resultsTitle">Assessment Complete</h2>
+                    <p id="resultsSubtitle" style="margin-bottom: 20px; color: #666;"></p>
+
+                    <div id="riskBadge"></div>
+
+                    <div class="result-details">
+                        <div class="result-item">
+                            <div class="result-label" id="resultCaseLabel">Case ID</div>
+                            <div class="result-value" id="resultCaseValue">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" id="resultRiskLabel">Risk Score</div>
+                            <div class="result-value" id="resultRiskValue">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" id="resultComplaintLabel">Chief Complaint</div>
+                            <div class="result-value" id="resultComplaintValue">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" id="resultRecommendationLabel">Recommendation</div>
+                            <div class="result-value" id="resultRecommendationValue">-</div>
+                        </div>
+                    </div>
+
+                    <div id="ambulanceInfoDiv"></div>
+
+                    <div class="info-box" style="margin-top: 20px;" id="finalInfoBox">
+                        ✓ Please stay calm. Help is on the way if emergency dispatch was initiated.
+                    </div>
+
+                    <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px;">
+                        <span id="btnNewAssessment">New Assessment</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // TRANSLATIONS AND CONFIGURATION
+        // =========================================================================
+        const translations = {
+            en: {
+                headerTitle: "Emergency Triage Assessment",
+                headerSubtitle: "Providing quick and accurate emergency response",
+                sectionTitle1: "Patient Information",
+                sectionTitle2: "Chief Complaint & Symptoms",
+                labelName: "Patient Name",
+                labelMobile: "Mobile Number",
+                labelLocation: "Current Location",
+                labelAge: "Age (years)",
+                labelChiefComplaint: "Chief Complaint",
+                labelMedicalHistory: "Medical History",
+                btnNextText: "Continue →",
+                btnBackText: "← Back",
+                btnSubmitText: "Submit Assessment",
+                btnNewAssessment: "New Assessment",
+                helpMobile: "10-digit number (e.g., 9876543210)",
+                helpLocation: "Street address or nearest landmark",
+                helpMedicalHistory: "List any ongoing medical conditions or allergies",
+                infoBoxComplaint: "ℹ️ Please select your primary health concern below",
+                errorNameRequired: "Name is required",
+                errorMobileRequired: "Mobile number is required",
+                errorMobileInvalid: "Invalid phone number. Please enter 10 digits starting with 6-9.",
+                errorLocationRequired: "Location is required",
+                errorAgeRequired: "Age is required",
+                errorComplaintRequired: "Please select a chief complaint",
+                resultCaseLabel: "Case ID",
+                resultRiskLabel: "Risk Score",
+                resultComplaintLabel: "Chief Complaint",
+                resultRecommendationLabel: "Recommendation",
+                resultsTitle: "Assessment Complete",
+                resultsSubtitle: "Thank you for using Emergency Services",
+                finalInfoBox: "✓ Please stay calm. Help is on the way if emergency dispatch was initiated.",
+                selectComplaint: "-- Select complaint --",
+                highRisk: "HIGH RISK - Emergency Department",
+                moderateRisk: "MODERATE RISK - Urgent Care",
+                lowRisk: "LOW RISK - Routine Care"
+            },
+            mr: {
+                headerTitle: "आपातकालीन ट्राइएज मूल्यांकन",
+                headerSubtitle: "त्वरित आणि अचूक आपातकालीन प्रतिक्रिया प्रदान करणे",
+                sectionTitle1: "रोगी माहिती",
+                sectionTitle2: "मुख्य शिकायत आणि लक्षणे",
+                labelName: "रोगी का नाम",
+                labelMobile: "मोबाइल नंबर",
+                labelLocation: "मौजूदा स्थान",
+                labelAge: "आयु (वर्ष)",
+                labelChiefComplaint: "मुख्य शिकायत",
+                labelMedicalHistory: "चिकित्सा इतिहास",
+                btnNextText: "जारी रखें →",
+                btnBackText: "← पीछे",
+                btnSubmitText: "मूल्यांकन जमा करें",
+                btnNewAssessment: "नया मूल्यांकन",
+                helpMobile: "10-अंकीय नंबर (जैसे 9876543210)",
+                helpLocation: "सड़क का पता या निकटतम स्थलचिन्ह",
+                helpMedicalHistory: "किसी भी चल रहि चिकित्सा स्थितियों या एलर्जी की सूची बनाएं",
+                infoBoxComplaint: "ℹ️ कृपया नीचे अपनी प्राथमिक स्वास्थ्य समस्या का चयन करें",
+                errorNameRequired: "नाम आवश्यक है",
+                errorMobileRequired: "मोबाइल नंबर आवश्यक है",
+                errorMobileInvalid: "अमान्य फोन नंबर। कृपया 6-9 से शुरू होने वाले 10 अंक दर्ज करें।",
+                errorLocationRequired: "स्थान आवश्यक है",
+                errorAgeRequired: "आयु आवश्यक है",
+                errorComplaintRequired: "कृपया एक मुख्य शिकायत का चयन करें",
+                resultCaseLabel: "केस आईडी",
+                resultRiskLabel: "जोखिम स्कोर",
+                resultComplaintLabel: "मुख्य शिकायत",
+                resultRecommendationLabel: "सिफारिश",
+                resultsTitle: "मूल्यांकन पूर्ण",
+                resultsSubtitle: "आपातकालीन सेवाओं का उपयोग करने के लिए धन्यवाद",
+                finalInfoBox: "✓ कृपया शांत रहें। यदि आपातकालीन डिस्पैच शुरू किया गया था तो मदद रास्ते में है।",
+                selectComplaint: "-- शिकायत चुनें --",
+                highRisk: "उच्च जोखिम - आपातकालीन विभाग",
+                moderateRisk: "मध्यम जोखिम - तत्काल देखभाल",
+                lowRisk: "कम जोखिम - नियमित देखभाल"
+            }
+        };
+
+        const emsComplaints = {
+            "en": {
+                "Pain in abdomen/stomach": [],
+                "Abnormal Behavior [Delirium]": [],
+                "Allergic reaction": ["What triggered the allergic reaction?", "When did symptoms start?", "Is there breathing difficulty or swelling?"],
+                "Confusion or altered mental status": [],
+                "Animal Bite": [],
+                "Attack / Assault": [],
+                "Back Pain": [],
+                "Breathing Difficulty": ["When did the difficulty start?", "Are you able to speak a full sentence?", "Do you have any wheezing sound?"],
+                "Burns": [],
+                "Chest pain": ["When did the pain start?", "Does the pain radiate to your arm or jaw?", "Do you have shortness of breath?"],
+                "Choking": [],
+                "Diarrhea / Loose motions": [],
+                "Drowning / Near Drowning": [],
+                "Dizziness": [],
+                "Electrocution / lightning strike": [],
+                "Eye pain": [],
+                "Fainting": [],
+                "Fall from Height": [],
+                "Fever": ["Since when do you have fever?", "What is the temperature?", "Do you have cough or body aches?"],
+                "Hazardous matter exposure": [],
+                "Headache": [],
+                "Hematemesis [vomiting blood]": [],
+                "Low sugar level": [],
+                "Low body temperature": [],
+                "Heat stroke": [],
+                "Overdose / poisoning": ["What substance was consumed?", "When did exposure occur?", "Is the patient conscious?"],
+                "Pregnancy - bleeding": [],
+                "Pregnancy - abdominal pain / labor pain": ["How many weeks pregnant?", "When did labor start?", "Frequency of contractions?"],
+                "Pregnancy - baby delivered": [],
+                "Psychiatric problems": [],
+                "Paralysis / stroke": [],
+                "Child patient / Pediatric patient": [],
+                "Road traffic accident: general": ["How many people involved?", "Any visible bleeding?", "Can patient move all limbs?"],
+                "Road traffic accident: auto - pedestrian": [],
+                "Road traffic accident: ejection from vehicle": [],
+                "Road traffic accident: vehicle rollover": [],
+                "Road traffic accident: vehicle off bridge/height": [],
+                "Road traffic accident: Pediatric patient": [],
+                "Road traffic accident: Pregnant lady": [],
+                "Road traffic accident: pinned / struck patient": [],
+                "Road traffic accident: vehicle on fire": [],
+                "Accident of boat/ship": [],
+                "Convulsions / Fits / Seizures": ["How long did the seizure last?", "First time or had before?", "Is patient on seizure medication?"],
+                "Trauma - abdominal": [],
+                "Trauma - Bleeding": ["Where is the bleeding from?", "How much blood loss?", "Is bleeding continuous?"],
+                "Trauma - chest wall": [],
+                "Trauma - Head injury": [],
+                "Trauma - Gunshot injury": [],
+                "Vomiting": [],
+                "Unconscious / unresponsive patient": ["How long has patient been unconscious?", "Is patient breathing normally?", "Any visible injury?"],
+                "Weakness": [],
+                "Sick Room Treatment": [],
+                "Suicide attempt": [],
+                "Pregnancy Care": [],
+                "Child Care call": [],
+                "Drop Back Call": [],
+                "Corona": [],
+                "Corona HD": [],
+                "Body Pain / Swelling": [],
+                "Joint Pain": [],
+                "Cough & Cold": [],
+                "Worm Infection": [],
+                "Gastritis": [],
+                "Anemia": [],
+                "Urine Problem": [],
+                "BP Checkup": [],
+                "Toothache / Dental Pain": [],
+                "Mouth Ulcer / Infection": [],
+                "Skin Infection": [],
+                "Ear Pain / Infection": [],
+                "Acidity": [],
+                "Throat Infection": [],
+                "Hypertension": [],
+                "Body Itching": [],
+                "Fungal Infection": [],
+                "Vertigo": [],
+                "Numbness": [],
+                "Giddiness / Fainting": [],
+                "General Weakness": [],
+                "Joint Pain - Body Movement Difficulty": [],
+                "Loose motion - Vomiting": [],
+                "Traumatic Injury": [],
+                "RTA (Road Traffic Accident)": [],
+                "Other": []
+            },
+            "mr": {
+                "पोटात/पोटाच्या क्षेत्रात दर्द": [],
+                "असामान्य वर्तन [भ्रम]": [],
+                "एलर्जीक प्रतिक्रिया": ["एलर्जी प्रतिक्रिया किसने ट्रिगर की?", "लक्षण कब शुरू हुए?", "क्या श्वसन कठिनाई है?"],
+                "गोंधळ किंवा बदलले मानसिक स्थिती": [],
+                "जनावराचा चावा": [],
+                "हल्ला / आक्रमण": [],
+                "पाठीचा दर्द": [],
+                "श्वसन कठिनाई": ["कठिनाई कब शुरू हुई?", "क्या आप पूरा वाक्य बोल सकते हैं?", "क्या कोई सीटी की आवाज है?"],
+                "जळे": [],
+                "छातीचा दर्द": ["दर्द कब शुरू हुआ?", "क्या दर्द बांह या जबड़े तक फैली है?", "श्वसन कठिनाई है?"],
+                "Other": []
+            }
+        };
+
+        // =========================================================================
+        // GLOBAL VARIABLES
+        // =========================================================================
+        let currentLanguage = 'en';
+        let currentSection = 1;
+        let caseId = null;
+        let patientKnown = true;  // NEW: Track if patient is known
+        let assessmentData = {
+            name: '',
+            caller_name: '',  // NEW: Caller name for unknown patient
+            mobile: '',
+            location: '',
+            age: '',
+            gender: '',  // NEW
+            chiefComplaint: '',
+            medicalHistory: '',
+            dynamicAnswers: {},
+            patient_known: true  // NEW
+        };
+
+        // IMMEDIATE EMERGENCY COMPLAINTS - Auto-dispatch without delay
+        const immediateEmergencyComplaints = new Set([
+            "Chest pain",
+            "Breathing Difficulty",
+            "Unconscious / unresponsive patient",
+            "Convulsions / Fits / Seizures",
+            "Road traffic accident: general",
+            "Road traffic accident: vehicle on fire",
+            "Road traffic accident: pinned / struck patient",
+            "Trauma - Head injury",
+            "Trauma - Bleeding",
+            "Drowning / Near Drowning",
+            "Electrocution / lightning strike",
+            "Hematemesis [vomiting blood]",
+            "Overdose / poisoning",
+            "Pregnancy - bleeding",
+            "Pregnancy - baby delivered",
+            "Choking",
+            "Paralysis / stroke",
+            "Hazardous matter exposure"
+        ]);
+
+        // =========================================================================
+        // INITIALIZATION
+        // =========================================================================
+        window.addEventListener('DOMContentLoaded', function() {
+            populateChiefComplaints();
+            updateUILanguage();
+        });
+
+        // =========================================================================
+        // NEW: PATIENT MODE HANDLER (Known vs Unknown)
+        // =========================================================================
+        function setPatientMode(known) {
+            patientKnown = known;
+            assessmentData.patient_known = known;
+            
+            const patientNameGroup = document.getElementById('patientNameGroup');
+            const callerNameGroup = document.getElementById('callerNameGroup');
+            const patientKnownYes = document.getElementById('patientKnownYes');
+            const patientKnownNo = document.getElementById('patientKnownNo');
+            const unidentifiedBadge = document.getElementById('unidentifiedBadge');
+            
+            if (known) {
+                // KNOWN PATIENT MODE
+                patientNameGroup.style.display = 'block';
+                callerNameGroup.style.display = 'none';
+                patientKnownYes.classList.add('active');
+                patientKnownNo.classList.remove('active');
+                unidentifiedBadge.classList.remove('show');
+                document.getElementById('patientName').required = true;
+                document.getElementById('callerName').required = false;
+            } else {
+                // UNKNOWN/BYSTANDER MODE
+                patientNameGroup.style.display = 'none';
+                callerNameGroup.style.display = 'block';
+                patientKnownYes.classList.remove('active');
+                patientKnownNo.classList.add('active');
+                unidentifiedBadge.classList.add('show');
+                document.getElementById('patientName').required = false;
+                document.getElementById('callerName').required = true;
+                // Clear patient name when switching to unknown
+                document.getElementById('patientName').value = '';
+            }
+            
+            // Clear validation errors
+            document.getElementById('errorName').classList.remove('show');
+            document.getElementById('errorCallerName').classList.remove('show');
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateUILanguage();
+        }
+
+        function updateUILanguage() {
+            const t = translations[currentLanguage];
+            
+            document.getElementById('headerTitle').textContent = t.headerTitle;
+            document.getElementById('headerSubtitle').textContent = t.headerSubtitle;
+            document.getElementById('sectionTitle1').textContent = t.sectionTitle1;
+            document.getElementById('sectionTitle2').textContent = t.sectionTitle2;
+            document.getElementById('labelName').textContent = t.labelName;
+            document.getElementById('labelMobile').textContent = t.labelMobile;
+            document.getElementById('labelLocation').textContent = t.labelLocation;
+            document.getElementById('labelAge').textContent = t.labelAge;
+            document.getElementById('labelChiefComplaint').textContent = t.labelChiefComplaint;
+            document.getElementById('labelMedicalHistory').textContent = t.labelMedicalHistory;
+            document.getElementById('btnNextText').textContent = t.btnNextText;
+            document.getElementById('btnBackText').textContent = t.btnBackText;
+            document.getElementById('btnSubmitText').textContent = t.btnSubmitText;
+            document.getElementById('btnNewAssessment').textContent = t.btnNewAssessment;
+            document.getElementById('helpMobile').textContent = t.helpMobile;
+            document.getElementById('helpLocation').textContent = t.helpLocation;
+            document.getElementById('helpMedicalHistory').textContent = t.helpMedicalHistory;
+            document.getElementById('infoBoxComplaint').textContent = t.infoBoxComplaint;
+            document.getElementById('resultCaseLabel').textContent = t.resultCaseLabel;
+            document.getElementById('resultRiskLabel').textContent = t.resultRiskLabel;
+            document.getElementById('resultComplaintLabel').textContent = t.resultComplaintLabel;
+            document.getElementById('resultRecommendationLabel').textContent = t.resultRecommendationLabel;
+            document.getElementById('resultsTitle').textContent = t.resultsTitle;
+            document.getElementById('resultsSubtitle').textContent = t.resultsSubtitle;
+            document.getElementById('finalInfoBox').textContent = t.finalInfoBox;
+        }
+
+        function populateChiefComplaints() {
+            const selectEl = document.getElementById('chiefComplaint');
+            const complaints = Object.keys(emsComplaints[currentLanguage]);
+            
+            selectEl.innerHTML = `<option value="">${translations[currentLanguage].selectComplaint}</option>`;
+            
+            complaints.forEach(complaint => {
+                const option = document.createElement('option');
+                option.value = complaint;
+                option.textContent = complaint;
+                selectEl.appendChild(option);
+            });
+        }
+
+        function updateDynamicQuestions() {
+            const complaint = document.getElementById('chiefComplaint').value;
+            const container = document.getElementById('dynamicQuestionsContainer');
+            const emergencyAlert = document.getElementById('emergencyAlert');
+            container.innerHTML = '';
+
+            if (!complaint) {
+                emergencyAlert.classList.remove('show');
+                return;
+            }
+
+            // CHECK IF THIS IS AN IMMEDIATE EMERGENCY COMPLAINT
+            if (immediateEmergencyComplaints.has(complaint)) {
+                emergencyAlert.classList.add('show');
+            } else {
+                emergencyAlert.classList.remove('show');
+            }
+
+            const questions = emsComplaints[currentLanguage][complaint] || [];
+            
+            if (questions.length > 0) {
+                questions.forEach((q, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'form-group';
+                    div.innerHTML = `
+                        <label for="q${idx}">${q}</label>
+                        <input type="text" id="q${idx}" placeholder="Your answer...">
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`section${section}`).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function validatePhoneNumber(phone) {
+            const regex = /^[6-9]\d{9}$/;
+            return regex.test(phone);
+        }
+
+        function validateAndMoveToSection(from, to) {
+            const t = translations[currentLanguage];
+            let valid = true;
+
+            // Clear errors
+            document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+
+            if (from === 1) {
+                // Validation differs based on patient mode
+                if (patientKnown) {
+                    // KNOWN PATIENT - require patient name
+                    const name = document.getElementById('patientName').value.trim();
+                    if (!name || name.length < 2) {
+                        showError('errorName', t.errorNameRequired);
+                        valid = false;
+                    } else {
+                        assessmentData.name = name;
+                    }
+                } else {
+                    // UNKNOWN PATIENT - require caller name instead
+                    const callerName = document.getElementById('callerName').value.trim();
+                    if (!callerName || callerName.length < 2) {
+                        showError('errorCallerName', 'Caller name is required');
+                        valid = false;
+                    } else {
+                        assessmentData.caller_name = callerName;
+                        assessmentData.name = 'Unknown Patient (Bystander Report)';  // Default name
+                    }
+                }
+
+                // Mobile is required in both modes
+                const mobile = document.getElementById('mobileNumber').value.trim();
+                if (!mobile) {
+                    showError('errorMobile', t.errorMobileRequired);
+                    valid = false;
+                } else if (!validatePhoneNumber(mobile)) {
+                    showError('errorMobile', t.errorMobileInvalid);
+                    valid = false;
+                } else {
+                    assessmentData.mobile = mobile;
+                }
+
+                // Location is required in both modes
+                const location = document.getElementById('currentLocation').value.trim();
+                if (!location || location.length < 5) {
+                    showError('errorLocation', t.errorLocationRequired);
+                    valid = false;
+                } else {
+                    assessmentData.location = location;
+                }
+
+                // Age and gender are optional
+                const age = document.getElementById('patientAge').value.trim();
+                if (age) {
+                    assessmentData.age = age;
+                }
+
+                const gender = document.getElementById('patientGender').value;
+                if (gender) {
+                    assessmentData.gender = gender;
+                }
+
+                if (valid) {
+                    currentSection = to;
+                    showSection(to);
+                    populateChiefComplaints();
+                }
+            }
+            }
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.add('show');
+        }
+
+        function submitIntake() {
+            const t = translations[currentLanguage];
+            let valid = true;
+
+            document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+
+            const complaint = document.getElementById('chiefComplaint').value;
+            const medicalHistory = document.getElementById('medicalHistory').value;
+
+            if (!complaint) {
+                showError('errorComplaint', t.errorComplaintRequired);
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            assessmentData.chiefComplaint = complaint;
+            assessmentData.medicalHistory = medicalHistory;
+
+            // Collect dynamic question answers
+            const dynamicContainer = document.getElementById('dynamicQuestionsContainer');
+            dynamicContainer.querySelectorAll('input[type="text"]').forEach((input, idx) => {
+                assessmentData.dynamicAnswers[`q${idx}`] = input.value;
+            });
+
+            // Show loading
+            document.getElementById('section2').innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing assessment...</p></div>';
+
+            // Build submission payload
+            const payload = {
+                patient_name: assessmentData.name,
+                callback_phone: assessmentData.mobile,
+                patient_address: assessmentData.location,
+                patient_age: assessmentData.age || '',
+                chief_complaint: assessmentData.chiefComplaint,
+                medical_history: assessmentData.medicalHistory,
+                language: currentLanguage,
+                // NEW FIELDS FOR UNKNOWN PATIENT SUPPORT
+                patient_known: assessmentData.patient_known,
+                caller_name: assessmentData.caller_name || '',
+                patient_gender: assessmentData.gender || '',
+                is_unidentified: !assessmentData.patient_known  // Flag for unidentified patients
+            };
+
+            // Submit to backend
+            fetch('/submit_assessment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                caseId = data.case_id;
+                displayResults(data);
+                currentSection = 'results';
+                showSection('Results');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting assessment. Please try again.');
+            });
+        }
+
+        function displayResults(data) {
+            const t = translations[currentLanguage];
+            const riskLevel = data.risk_level;
+            let badgeClass = 'risk-low';
+            let badgeText = t.lowRisk;
+
+            if (riskLevel === 'high') {
+                badgeClass = 'risk-high';
+                badgeText = t.highRisk;
+            } else if (riskLevel === 'moderate') {
+                badgeClass = 'risk-moderate';
+                badgeText = t.moderateRisk;
+            }
+
+            document.getElementById('riskBadge').innerHTML = `<div class="risk-badge ${badgeClass}">${badgeText}</div>`;
+            document.getElementById('resultCaseValue').textContent = caseId;
+            document.getElementById('resultRiskValue').textContent = (data.risk_score * 100).toFixed(1) + '%';
+            document.getElementById('resultComplaintValue').textContent = assessmentData.chiefComplaint;
+            document.getElementById('resultRecommendationValue').textContent = data.recommendation;
+
+            // Show ambulance info if high risk
+            if (riskLevel === 'high' && data.ambulance_assigned) {
+                document.getElementById('ambulanceInfoDiv').innerHTML = `
+                    <div class="ambulance-info">
+                        <strong>✓ Ambulance Dispatched</strong><br>
+                        ETA: ${data.estimated_arrival_time} minutes
+                    </div>
+                `;
+            }
+
+            showSection('Results');
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            const selector = sectionName === 'Results' ? 'sectionResults' : `section${sectionName}`;
+            const el = document.getElementById(selector);
+            if (el) el.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>

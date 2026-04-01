@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nurse Queue - Emergency Triage</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #17a2b8;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #17a2b8;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .queue-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .case-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #17a2b8;
+        }
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .priority-MEDIUM {
+            background: #ffc107;
+            color: #000;
+        }
+        .priority-LOW {
+            background: #6c757d;
+            color: white;
+        }
+        .priority-ROUTINE {
+            background: #e9ecef;
+            color: #333;
+        }
+        .case-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .info-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .risk-score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-callback {
+            background: #28a745;
+            color: white;
+        }
+        .btn-callback:hover {
+            background: #218838;
+        }
+        .btn-selfcare {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-selfcare:hover {
+            background: #138496;
+        }
+        .btn-clinic {
+            background: #007bff;
+            color: white;
+        }
+        .btn-clinic:hover {
+            background: #0069d9;
+        }
+        .btn-escalate {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-escalate:hover {
+            background: #c82333;
+        }
+        .refresh-btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👩‍⚕️ Nurse Review Queue</h1>
+        <p>Non-emergency cases requiring clinical assessment and callback</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="queueCount">0</div>
+            <div class="stat-label">Cases in Queue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="mediumCount">0</div>
+            <div class="stat-label">Medium Priority</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgWait">--</div>
+            <div class="stat-label">Average Wait (min)</div>
+        </div>
+    </div>
+
+    <div class="queue-container">
+        <div class="queue-header">
+            <h2>Active Cases</h2>
+            <button class="refresh-btn" onclick="loadQueue()">🔄 Refresh</button>
+        </div>
+        
+        <div id="queueList"></div>
+    </div>
+
+    <script>
+        let nurseId = 'nurse_' + Math.random().toString(36).substr(2, 9);
+
+        async function loadQueue() {
+            try {
+                const response = await fetch('/nurse/queue');
+                const data = await response.json();
+                
+                // Update stats
+                document.getElementById('queueCount').textContent = data.count;
+                document.getElementById('mediumCount').textContent = 
+                    data.queue.filter(c => c.routing.priority === 'MEDIUM').length;
+                
+                // Render queue
+                renderQueue(data.queue);
+                
+            } catch (error) {
+                console.error('Error loading queue:', error);
+            }
+        }
+
+        function renderQueue(queue) {
+            const container = document.getElementById('queueList');
+            
+            if (queue.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 48px;">✅</div>
+                        <h3>No Cases in Queue</h3>
+                        <p>All non-emergency cases have been processed</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = queue.map(caseData => {
+                const c = caseData.case_data;
+                const p = caseData.prediction;
+                const r = caseData.routing;
+                
+                return `
+                    <div class="case-card">
+                        <div class="case-header">
+                            <div>
+                                <h3 style="margin-bottom: 5px;">${caseData.case_id}</h3>
+                                <span class="priority-badge priority-${r.priority}">${r.priority}</span>
+                            </div>
+                            <div class="risk-score">
+                                ${(p.risk_score * 100).toFixed(0)}%
+                            </div>
+                        </div>
+                        
+                        <div class="case-info">
+                            <div class="info-item">
+                                <div class="info-label">Chief Complaint</div>
+                                <div class="info-value">${c.chief_complaint || 'Not specified'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Age</div>
+                                <div class="info-value">${c.age || '?'} years</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Pain Level</div>
+                                <div class="info-value">${c.pain_level || '?'}/10</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Duration</div>
+                                <div class="info-value">${c.duration_hours ? c.duration_hours.toFixed(1) : '?'} hours</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: white; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                            <div class="info-label">Medical History</div>
+                            <p style="margin-top: 5px; line-height: 1.6;">${c.history || 'None reported'}</p>
+                        </div>
+                        
+                        <div style="background: white; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                            <div class="info-label">ML Assessment</div>
+                            <p style="margin-top: 5px; line-height: 1.6;">${p.reasoning}</p>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-callback" onclick="makeDecision('${caseData.case_id}', 'nurse_callback')">
+                                📞 Schedule Callback
+                            </button>
+                            <button class="btn-selfcare" onclick="makeDecision('${caseData.case_id}', 'self_care_advised')">
+                                ℹ️ Self-Care Guidance
+                            </button>
+                            <button class="btn-clinic" onclick="makeDecision('${caseData.case_id}', 'clinic_referral')">
+                                🏥 Clinic Referral
+                            </button>
+                            <button class="btn-escalate" onclick="makeDecision('${caseData.case_id}', 'escalate_to_emergency')">
+                                ⚠️ Escalate to Emergency
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function makeDecision(caseId, decision) {
+            const notes = prompt('Clinical notes (optional):') || '';
+            
+            if (decision === 'escalate_to_emergency' && !notes) {
+                const confirmed = confirm('Are you sure you want to escalate this to emergency? Please provide a reason.');
+                if (!confirmed) return;
+                const reason = prompt('Escalation reason (required):');
+                if (!reason) return;
+                notes = reason;
+            }
+            
+            try {
+                const actionLabels = {
+                    'nurse_callback': 'Callback scheduled',
+                    'self_care_advised': 'Self-care guidance provided',
+                    'clinic_referral': 'Referred to clinic',
+                    'escalate_to_emergency': 'Escalated to emergency'
+                };
+                
+                await fetch('/nurse/decision', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        case_id: caseId,
+                        decision: decision,
+                        nurse_id: nurseId,
+                        notes: notes
+                    })
+                });
+                
+                alert(`✓ ${actionLabels[decision]}`);
+                loadQueue();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to record decision');
+            }
+        }
+
+        // Auto-refresh every 15 seconds
+        setInterval(loadQueue, 15000);
+        
+        // Initial load
+        loadQueue();
+    </script>
+</body>
+</html>
