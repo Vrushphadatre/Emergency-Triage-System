@@ -381,7 +381,6 @@
             background: rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.5);
         }
-        }
 
         .result-item {
             display: flex;
@@ -546,18 +545,32 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">Patient Name</label>
-                        <input type="text" id="patientName" placeholder="Full name">
+                        <input type="text" id="patientName" placeholder="Full name" onkeypress="return /[a-zA-Z\s\-]/.test(String.fromCharCode(event.which || event.keyCode))">
                     </div>
                     <div class="form-group">
                         <label class="required">Age</label>
-                        <input type="number" id="patientAge" placeholder="Years" min="0" max="150">
+                        <div style="display: flex; gap: 10px; align-items: flex-end;">
+                            <div style="flex: 2;">
+                                <label style="font-size: 12px; color: #555; margin-bottom: 4px; display: block;">Value <span style="color: red;">*</span></label>
+                                <input type="number" id="patientAge" placeholder="Enter age" min="0" max="999" step="0.1" style="width: 100%;" onchange="validateAgeInput()">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; color: #555; margin-bottom: 4px; display: block;">Unit <span style="color: red;">*</span></label>
+                                <select id="patientAgeUnit" style="width: 100%; padding: 10px 8px; border: 2px solid #dfe6e9; border-radius: 6px; background-color: white; font-size: 13px;" onchange="validateAgeInput()">
+                                    <option value="years">Years</option>
+                                    <option value="months">Months</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <small style="color: #666; margin-top: 6px; display: block;">Example: Enter 5 Years, or 18 Months, or 500 Days</small>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">Mobile Number</label>
-                        <input type="tel" id="callerPhone" placeholder="10-digit number" maxlength="10" pattern="[6-9][0-9]{9}">
+                        <input type="tel" id="callerPhone" placeholder="10-digit number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" onkeypress="return /[0-9]/.test(String.fromCharCode(event.which || event.keyCode))">
                     </div>
                     <div class="form-group">
                         <label>Gender</label>
@@ -572,7 +585,14 @@
 
                 <div class="form-group">
                     <label class="required">Location / Address</label>
-                    <input type="text" id="location" placeholder="Street address or landmark">
+                    <div style="display: flex; gap: 8px; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <input type="text" id="location" placeholder="Street address or landmark" style="width: 100%;">
+                            <div id="geoStatus" style="font-size: 12px; margin-top: 4px; color: #666;"></div>
+                            <div id="geoCoords" style="font-size: 11px; color: #999; margin-top: 2px;" title="Latitude, Longitude"></div>
+                        </div>
+                        <button type="button" id="geoLocBtn" class="btn-secondary" style="margin-top: 0; padding: 8px 12px; height: fit-content; white-space: nowrap;" onclick="fetchGeolocation()" title="Get current GPS coordinates">📍 Auto-Locate</button>
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -748,20 +768,16 @@
                         <span class="result-label">Chief Complaint:</span>
                         <span class="result-value" id="summaryComplaint">-</span>
                     </div>
-                    <div class="result-item">
-                        <span class="result-label">Location:</span>
-                        <span class="result-value" id="summaryLocation">-</span>
-                    </div>
                 </div>
 
                 <div id="emergencyFinal" class="alert alert-danger" style="display: none;">
                     <strong>🚨 IMMEDIATE EMERGENCY ALERT</strong><br>
-                    This case will be dispatched as HIGH PRIORITY with immediate ambulance assignment.
+                    This case requires immediate medical attention.
                 </div>
 
                 <div class="form-row">
                     <button class="btn-secondary" onclick="previousSection()">← Back</button>
-                    <button class="btn-primary" onclick="submitAssessment()">📞 Submit & Dispatch</button>
+                    <button class="btn-primary" onclick="submitAssessment()">📞 Submit</button>
                 </div>
             </div>
 
@@ -891,6 +907,115 @@
             }
         };
 
+        // ============================================================================
+        // GEOLOCATION & COORDINATES STORAGE
+        // ============================================================================
+        let geoCoordinates = { lat: null, lon: null };
+
+        function fetchGeolocation() {
+            const btn = document.getElementById('geoLocBtn');
+            const status = document.getElementById('geoStatus');
+            const coords = document.getElementById('geoCoords');
+            
+            if (!navigator.geolocation) {
+                status.textContent = 'Geolocation not supported on this device';
+                status.style.color = '#d9534f';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Locating...';
+            status.textContent = '';
+            coords.textContent = '';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    geoCoordinates = { lat, lon };
+                    
+                    status.textContent = '✓ Location captured successfully';
+                    status.style.color = '#5cb85c';
+                    coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
+                    btn.disabled = false;
+                    btn.textContent = '📍 Auto-Locate (✓)';
+                },
+                function(error) {
+                    let errorMsg = 'Unable to get location';
+                    if (error.code === 1) errorMsg = 'Permission denied for location access';
+                    if (error.code === 2) errorMsg = 'Location service unavailable';
+                    if (error.code === 3) errorMsg = 'Location request timed out';
+                    
+                    status.textContent = errorMsg;
+                    status.style.color = '#d9534f';
+                    coords.textContent = '';
+                    btn.disabled = false;
+                    btn.textContent = '📍 Auto-Locate';
+                },
+                { timeout: 10000, enableHighAccuracy: false }
+            );
+        }
+
+        // ============================================================================
+        // AGE UNIT CONVERSION (Years <-> Months)
+        // ============================================================================
+        function getAgeInMonths() {
+            const ageInput = document.getElementById('patientAge');
+            const ageValue = ageInput ? (parseFloat(ageInput.value) || 0) : 0;
+            const ageUnitSelect = document.getElementById('patientAgeUnit');
+            const ageUnit = ageUnitSelect ? ageUnitSelect.value : 'years';
+            
+            switch(ageUnit) {
+                case 'years':
+                    return ageValue * 12;
+                case 'months':
+                    return ageValue;
+                case 'days':
+                    return ageValue / 30;  // Approximate: 30 days per month
+                default:
+                    return ageValue * 12;  // Default to years
+            }
+        }
+        
+        function getAgeDisplayText() {
+            const ageInput = document.getElementById('patientAge');
+            const ageUnitSelect = document.getElementById('patientAgeUnit');
+            
+            // Make sure elements exist
+            if (!ageInput || !ageUnitSelect) {
+                console.warn('Age input or unit select element not found');
+                return '-';
+            }
+            
+            const rawValue = ageInput.value.trim();
+            const ageValue = parseFloat(rawValue);
+            const ageUnit = ageUnitSelect.value || 'years';
+            
+            console.log('Age Display - Raw Value:', rawValue, 'Parsed:', ageValue, 'Unit:', ageUnit, 'Valid:', !isNaN(ageValue) && ageValue > 0);
+            
+            // Check if we have a valid age value
+            if (isNaN(ageValue) || ageValue === 0 || rawValue === '') {
+                return '-';
+            }
+            
+            // Convert to human-readable format (years, months, days)
+            const totalMonths = getAgeInMonths();
+            const years = Math.floor(totalMonths / 12);
+            const months = Math.floor(totalMonths % 12);
+            
+            if (years > 0 && months > 0) {
+                return `${years} years ${months} months`;
+            } else if (years > 0) {
+                return `${years} year${years > 1 ? 's' : ''}`;
+            } else if (months > 0) {
+                return `${months} month${months > 1 ? 's' : ''}`;
+            } else if (ageValue > 0) {
+                return `${ageValue} ${ageUnit}`;
+            }
+            
+            return '-';
+        }
+
         function switchLanguage(lang) {
             currentLanguage = lang;
             
@@ -984,13 +1109,61 @@
             document.getElementById('progressFill').style.width = progress + '%';
         }
 
+        function validateAgeInput() {
+            const ageInput = document.getElementById('patientAge');
+            let age = parseFloat(ageInput.value);
+            const ageUnit = document.getElementById('patientAgeUnit').value;
+            
+            // Convert to years for validation
+            let ageInYears = age;
+            if (ageUnit === 'months') ageInYears = age / 12;
+            if (ageUnit === 'days') ageInYears = age / 365;
+            
+            if (ageInYears > 150) {
+                ageInput.value = '';
+                alert('Age cannot exceed 150 years');
+            }
+            if (age < 0) {
+                ageInput.value = 0;
+            }
+        }
+        
+        function validatePhoneNumber(phone) {
+            // Remove any non-digit characters
+            const cleanPhone = phone.replace(/\D/g, '');
+            // Check if it's exactly 10 digits
+            return cleanPhone.length === 10 && /^[0-9]{10}$/.test(cleanPhone);
+        }
+
+        function validatePatientName(name) {
+            // Only allow letters, spaces, and hyphens
+            return /^[a-zA-Z\s\-]+$/.test(name) && name.trim().length > 0;
+        }
+
         function validateStep(step) {
             const errors = [];
 
             if (step === 1) {
-                if (!document.getElementById('patientName').value.trim()) errors.push('Patient name required');
+                const name = document.getElementById('patientName').value.trim();
+                if (!name) errors.push('Patient name required');
+                if (name && !validatePatientName(name)) errors.push('Patient name can only contain letters, spaces, and hyphens (no numbers or special characters)');
+                
+                const ageValue = parseFloat(document.getElementById('patientAge').value);
                 if (!document.getElementById('patientAge').value) errors.push('Age required');
-                if (!document.getElementById('callerPhone').value.trim()) errors.push('Phone number required');
+                
+                // Convert age to years based on selected unit
+                const ageUnit = document.getElementById('patientAgeUnit').value;
+                let ageInYears = ageValue;
+                if (ageUnit === 'months') ageInYears = ageValue / 12;
+                if (ageUnit === 'days') ageInYears = ageValue / 365;
+                
+                if (ageInYears > 150) errors.push('Age cannot exceed 150 years');
+                if (ageInYears < 0) errors.push('Age cannot be negative');
+                
+                const phone = document.getElementById('callerPhone').value.trim();
+                if (!phone) errors.push('Phone number required');
+                if (phone && !validatePhoneNumber(phone)) errors.push('Phone must be exactly 10 digits (0-9 only)');
+                
                 if (!document.getElementById('location').value.trim()) errors.push('Location required');
             } else if (step === 2) {
                 if (!document.getElementById('chiefComplaint').value) errors.push('Chief complaint required');
@@ -1025,11 +1198,35 @@
 
         function updateSummary() {
             document.getElementById('summaryName').textContent = document.getElementById('patientName').value || '-';
-            const age = document.getElementById('patientAge').value;
+            
+            // Get age - read directly from form fields by ID
+            const ageInput = document.getElementById('patientAge');
+            const ageUnitInput = document.getElementById('patientAgeUnit');
+            
+            let ageDisplay = '-';
+            if (ageInput && ageUnitInput) {
+                const ageValue = parseFloat(ageInput.value) || 0;
+                if (ageValue > 0) {
+                    const ageUnit = ageUnitInput.value;
+                    // Convert to display format
+                    if (ageUnit === 'years') {
+                        ageDisplay = `${Math.floor(ageValue)} years 0 months`;
+                    } else if (ageUnit === 'months') {
+                        const years = Math.floor(ageValue / 12);
+                        const months = Math.floor(ageValue % 12);
+                        ageDisplay = `${years} years ${months} months`;
+                    } else if (ageUnit === 'days') {
+                        const totalMonths = Math.floor(ageValue / 30);
+                        const years = Math.floor(totalMonths / 12);
+                        const months = Math.floor(totalMonths % 12);
+                        ageDisplay = `${years} years ${months} months`;
+                    }
+                }
+            }
+            
             const gender = document.getElementById('gender').value;
-            document.getElementById('summaryAgeGender').textContent = `${age ? age : '-'} / ${gender || '-'}`;
+            document.getElementById('summaryAgeGender').textContent = `${ageDisplay} / ${gender || 'Not specified'}`;
             document.getElementById('summaryComplaint').textContent = document.getElementById('chiefComplaint').value || '-';
-            document.getElementById('summaryLocation').textContent = document.getElementById('location').value || '-';
 
             const complaint = document.getElementById('chiefComplaint').value;
             const emergencies = ['Chest pain', 'Breathing Difficulty', 'Unconscious', 'Severe Bleeding', 'Trauma', 'Seizure', 'Poisoning'];
@@ -1053,18 +1250,28 @@
 
             showLoading(true);
 
+            // Convert age to years and months for storage
+            const ageValue = parseFloat(document.getElementById('patientAge').value) || 0;
+            const ageUnit = document.getElementById('patientAgeUnit').value;
+            const totalMonths = getAgeInMonths();
+            const ageYears = Math.floor(totalMonths / 12);
+            const ageMonths = Math.floor(totalMonths % 12);
+            
             const assessmentData = {
-                patient_name: document.getElementById('patientName').value,
-                callback_phone: document.getElementById('callerPhone').value,
-                patient_address: document.getElementById('location').value,
-                patient_age: parseInt(document.getElementById('patientAge').value),
-                patient_gender: document.getElementById('gender').value,
-                chief_complaint: document.getElementById('chiefComplaint').value,
-                medical_history: document.getElementById('medicalHistory').value,
+                patientName: document.getElementById('patientName').value,
+                mobileNo: document.getElementById('callerPhone').value,
+                incAddress: document.getElementById('location').value,
+                incLat: geoCoordinates.lat ? parseFloat(geoCoordinates.lat) : null,
+                incLong: geoCoordinates.lon ? parseFloat(geoCoordinates.lon) : null,
+                patientAge: ageValue,  // Raw age value
+                patientAgeUnit: ageUnit,  // Unit (years, months, days)
+                patientGender: document.getElementById('gender').value,
+                chiefComplaint: document.getElementById('chiefComplaint').value,
+                medicalHistory: document.getElementById('medicalHistory').value,
                 language: currentLanguage,
-                patient_known: true,
-                is_unidentified: false,
-                symptom_duration: document.getElementById('duration').value
+                patientKnown: true,
+                isUnidentified: false,
+                durationChiefComplaint: document.getElementById('duration').value
             };
 
             console.log('Submitting assessment:', assessmentData);

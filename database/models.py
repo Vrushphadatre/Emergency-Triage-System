@@ -33,14 +33,15 @@ class TriageCase(Base):
     completed_at = Column(DateTime, nullable=True)
     
     # Patient information (anonymized in production)
-    patient_age = Column(Integer)
+    patient_age_years = Column(Integer, default=0)  # Age in years
+    patient_age_months = Column(Integer, default=0)  # Age in months (0-11)
     chief_complaint = Column(Text)
     symptoms = Column(JSON)  # List of symptoms
     transcript = Column(Text)  # Full conversation transcript
     
-    # Patient Location
-    patient_latitude = Column(Float)
-    patient_longitude = Column(Float)
+    # Patient Location (Incident coordinates)
+    inc_lat = Column(Float, comment="Incident Latitude (-90 to 90)")
+    inc_long = Column(Float, comment="Incident Longitude (-180 to 180)")
     patient_address = Column(String(500))
     patient_city = Column(String(100))
     patient_state = Column(String(50))
@@ -107,10 +108,15 @@ class TriageCase(Base):
     
     def to_dict(self):
         """Convert to dictionary for JSON serialization"""
+        age_display = f"{self.patient_age_years} years {self.patient_age_months} months" if (self.patient_age_years or self.patient_age_months) else '-'
         return {
-            'case_id': self.case_id,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'patient_age': self.patient_age,
+            'customer_id': self.case_id,
+            'patient_age_years': self.patient_age_years,
+            'patient_age_months': self.patient_age_months,
+            'patient_age_display': age_display,
+            'incLat': self.inc_lat,
+            'incLong': self.inc_long,
+            'Location / Address': self.patient_address,
             'chief_complaint': self.chief_complaint,
             'pain_level': self.pain_level,
             'ml_risk_score': self.ml_risk_score,
@@ -401,7 +407,8 @@ if __name__ == "__main__":
     
     test_case = TriageCase(
         case_id='TEST_001',
-        patient_age=45,
+        patient_age_years=45,
+        patient_age_months=0,
         chief_complaint='Test case',
         pain_level=5,
         duration_hours=2.0,

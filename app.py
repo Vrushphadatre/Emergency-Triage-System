@@ -4,6 +4,7 @@ Emergency Triage Decision Support System MVP
 """
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_cors import CORS
 import uuid
 from datetime import datetime
 import sys
@@ -29,6 +30,10 @@ app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
 app.config['SESSION_TYPE'] = config.SESSION_TYPE
 
+# Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]}})
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 # Initialize components
 db_manager = DatabaseManager()
 ml_classifier = TriageClassifier()
@@ -41,6 +46,106 @@ dispatch_manager = DispatchManager()
 active_cases = {}
 dispatcher_queue = []
 nurse_queue = []
+
+
+# ============================================================================
+# PARAMETER MAPPER - Handle different naming conventions
+# ============================================================================
+
+def map_incoming_parameters(data):
+    """
+    Map incoming parameters (camelCase) to system parameters (snake_case)
+    Handles both naming conventions from different client systems
+    """
+    mapped = {}
+    
+    # Direct mappings (incoming_name -> system_name)
+    mappings = {
+        'patientName': 'patient_name',
+        'patient_name': 'patient_name',
+        
+        'mobileNo': 'callback_phone',
+        'mobile_no': 'callback_phone',
+        'callback_phone': 'callback_phone',
+        'phone': 'callback_phone',
+        
+        'patientGender': 'patient_gender',
+        'patient_gender': 'patient_gender',
+        'gender': 'patient_gender',
+        
+        'incAddress': 'patient_address',
+        'patient_address': 'patient_address',
+        'address': 'patient_address',
+        
+        'incLat': 'patient_address_latitude',
+        'patient_address_latitude': 'patient_address_latitude',
+        'latitude': 'patient_address_latitude',
+        
+        'incLong': 'patient_address_longitude',
+        'patient_address_longitude': 'patient_address_longitude',
+        'longitude': 'patient_address_longitude',
+        
+        'chiefComplaint': 'chief_complaint',
+        'chief_complaint': 'chief_complaint',
+        
+        'associatedSymptoms': 'medical_history',
+        'associated_symptoms': 'medical_history',
+        'medical_history': 'medical_history',
+        'symptoms': 'medical_history',
+        
+        'durationChiefComplaint': 'symptom_duration',
+        'duration_chief_complaint': 'symptom_duration',
+        'symptom_duration': 'symptom_duration',
+        'duration': 'symptom_duration',
+        
+        'medicalHistory': 'medical_history',
+        'callerName': 'caller_name',
+        'caller_name': 'caller_name',
+        'patientKnown': 'patient_known',
+        'patient_known': 'patient_known',
+        'isUnidentified': 'is_unidentified',
+        'is_unidentified': 'is_unidentified',
+        'language': 'language',
+    }
+    
+    # Map parameters
+    for incoming_key, system_key in mappings.items():
+        if incoming_key in data:
+            mapped[system_key] = data[incoming_key]
+    
+    # Handle age special case - supports Years, Months, and Days
+    if 'patientAge' in data or 'patient_age' in data:
+        age_value = data.get('patientAge') or data.get('patient_age')
+        # Check for unit from different field names
+        age_unit = (data.get('patientAgeUnit') or data.get('patient_age_unit') or 
+                    data.get('patientAgeType') or data.get('patient_age_type') or 'years').lower()
+        
+        try:
+            age_float = float(age_value) if age_value else 0
+            
+            if age_unit == 'months' or age_unit == 'month':
+                # Input is months - store as-is
+                total_months = int(age_float)
+                mapped['patient_age_months'] = int(age_float % 12)
+                mapped['patient_age_years'] = int(age_float // 12)
+                mapped['age_in_months'] = total_months
+            elif age_unit == 'days' or age_unit == 'day':
+                # Convert days to months (30 days per month)
+                total_months = int(age_float / 30)
+                mapped['patient_age_months'] = int(total_months % 12)
+                mapped['patient_age_years'] = int(total_months // 12)
+                mapped['age_in_months'] = total_months
+            else:  # Default to years
+                age_years = int(age_float)
+                mapped['patient_age_years'] = age_years
+                mapped['patient_age_months'] = 0
+                mapped['age_in_months'] = age_years * 12  # Convert to months for ML
+        except (ValueError, TypeError):
+            mapped['patient_age_years'] = 0
+            mapped['patient_age_months'] = 0
+            mapped['age_in_months'] = 0
+    
+    return mapped
 
 
 # ============================================================================
@@ -130,10 +235,15 @@ def api_active_cases():
             ambulance_type = get_ambulance_type(c.chief_complaint)
             instructions = get_instructions(c.chief_complaint)
             
+            # Format age from separate years/months columns
+            age_display = f"{c.patient_age_years} years {c.patient_age_months} months" if (c.patient_age_years or c.patient_age_months) else '0 years 0 months'
+            
             cases_data.append({
                 'case_id': c.case_id,
                 'patient_name': c.caller_name or 'Unknown',
-                'patient_age': c.patient_age or 0,
+                'patient_age_years': c.patient_age_years or 0,
+                'patient_age_months': c.patient_age_months or 0,
+                'patient_age_display': age_display,
                 'patient_gender': c.patient_gender or 'Not specified',
                 'chief_complaint': c.chief_complaint or '- N/A -',
                 'callback_phone': c.callback_phone or 'N/A',
@@ -277,7 +387,13 @@ def submit_assessment():
     """
     Process form-based assessment with patient details, chief complaint, and symptoms
     ENHANCED: Support for unknown/unidentified patients + real-time emergency detection
+    Handles multiple parameter naming conventions
     """
+    
+    # Map incoming parameters to system format
+    raw_data = request.json
+    data = map_incoming_parameters(raw_data)
+    
     # COMPREHENSIVE EMERGENCY COMPLAINT CLASSIFICATION
     # Based on emergency triage protocols for all 86+ complaint types
     
@@ -351,17 +467,17 @@ def submit_assessment():
         "Child patient / Pediatric patient",  # Flag for special care
     }
     
-    data = request.json
-    
     # Create case ID
     case_id = f"CASE_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
     
-    # Extract patient information
+    # Extract patient information using mapped parameters
     patient_name = data.get('patient_name', 'Patient')
     caller_name = data.get('caller_name', '')  # For unknown patient reports
     callback_phone = data.get('callback_phone', '')
-    patient_address = data.get('patient_address', '')
-    patient_age = data.get('patient_age', 0)
+    patient_address = data.get('Location / Address', '')  # New field name format
+    patient_age_years = data.get('patient_age_years', 0)
+    patient_age_months = data.get('patient_age_months', 0)
+    patient_age_in_months = data.get('age_in_months', 0)
     patient_gender = data.get('patient_gender', '')
     patient_known = data.get('patient_known', True)
     is_unidentified = data.get('is_unidentified', False)
@@ -369,6 +485,40 @@ def submit_assessment():
     medical_history = data.get('medical_history', '')
     language = data.get('language', 'en')
     symptom_duration = data.get('symptom_duration', '')
+    
+    # VALIDATION: Patient name must contain only letters, spaces, and hyphens
+    if patient_name and not all(c.isalpha() or c.isspace() or c == '-' for c in patient_name):
+        return jsonify({'error': 'Patient name can only contain letters, spaces, and hyphens (no numbers or special characters)'}), 400
+    
+    # VALIDATION: Phone number must be 10 digits, no letters
+    if callback_phone and not (len(str(callback_phone)) == 10 and str(callback_phone).isdigit()):
+        return jsonify({'error': 'Phone number must be exactly 10 digits (0-9 only)'}), 400
+    
+    # VALIDATION: Age must be 0-150 years
+    if patient_age_years and (patient_age_years < 0 or patient_age_years > 150):
+        return jsonify({'error': 'Age must be between 0 and 150 years'}), 400
+    
+    # Extract geolocation data with new field names and validate
+    patient_lat = data.get('incLat')  # Incident Latitude
+    patient_lon = data.get('incLong')  # Incident Longitude
+    
+    # VALIDATION: Latitude must be between -90 and 90
+    if patient_lat is not None:
+        try:
+            patient_lat = float(patient_lat)
+            if patient_lat < -90 or patient_lat > 90:
+                return jsonify({'error': 'Latitude must be between -90 and 90 degrees'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid latitude value'}), 400
+    
+    # VALIDATION: Longitude must be between -180 and 180
+    if patient_lon is not None:
+        try:
+            patient_lon = float(patient_lon)
+            if patient_lon < -180 or patient_lon > 180:
+                return jsonify({'error': 'Longitude must be between -180 and 180 degrees'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid longitude value'}), 400
     
     # Check emergency classifications
     is_immediate_emergency = chief_complaint in IMMEDIATE_EMERGENCY_COMPLAINTS
@@ -381,20 +531,24 @@ def submit_assessment():
         'caller_name': caller_name if not patient_known else '',  # NEW
         'phone': callback_phone,
         'address': patient_address,
-        'age': int(patient_age) if patient_age else 0,
+        'age': int(patient_age_in_months) if patient_age_in_months else 0,  # Use normalized months
         'gender': patient_gender,  # NEW
         'chief_complaint': chief_complaint,
         'history': medical_history,
-        'transcript': f"Chief Complaint: {chief_complaint}\nMedical History: {medical_history}",
+        'transcript': f"Chief Complaint: {chief_complaint}\nMedical History: {medical_history}\nLocation: {patient_address}",
         'language': language,
         'is_immediate_emergency': is_immediate_emergency,  # NEW FLAG
         'is_moderate_emergency': is_moderate_emergency,  # NEW FLAG
         'is_unidentified_patient': is_unidentified  # NEW FLAG
     }
     
-    # Get default location (Seattle, WA)
+    # Get location data - prefer geolocation from patient, fall back to default (Seattle, WA)
     default_lat = 47.6062
     default_lon = -122.3321
+    
+    # Use geolocation if captured from form, otherwise use default
+    final_lat = float(patient_lat) if patient_lat is not None else default_lat
+    final_lon = float(patient_lon) if patient_lon is not None else default_lon
     
     try:
         # ML prediction using chief complaint
@@ -435,15 +589,16 @@ def submit_assessment():
         
         triage_case = TriageCase(
             case_id=case_id,
-            patient_age=case_data.get('age'),
+            patient_age_years=int(patient_age_years) if patient_age_years else 0,
+            patient_age_months=int(patient_age_months) if patient_age_months else 0,
             patient_gender=patient_gender,
             chief_complaint=chief_complaint,
             transcript=case_data.get('transcript'),
             duration_hours=0,
             medical_history=medical_history,
-            # Location fields
-            patient_latitude=default_lat,
-            patient_longitude=default_lon,
+            # Location fields - use geolocation if captured, otherwise default
+            inc_lat=final_lat,
+            inc_long=final_lon,
             patient_address=patient_address if patient_address else 'Address not provided',
             patient_city='City',
             patient_state='State',
@@ -484,56 +639,11 @@ def submit_assessment():
         
         db_session.commit()
         
-        # Handle ambulance dispatch if high risk OR immediate emergency
+        # No automatic dispatch - only submit cases to system
         ambulance_assigned = False
         estimated_arrival_time = None
-        ambulance_type = get_ambulance_type(chief_complaint)  # NEW: Get ALS/BLS type
-        prerarrival_instructions = get_instructions(chief_complaint)  # NEW: Get instructions
-        
-        if risk_level == 'high' or is_immediate_emergency:
-            try:
-                # Find nearest ambulance
-                nearest_ambulance = dispatch_manager.find_nearest_ambulance(
-                    patient_latitude=default_lat,
-                    patient_longitude=default_lon,
-                    required_equipment_level='advanced' if is_immediate_emergency else 'basic',
-                    db_session=db_session
-                )
-                
-                if nearest_ambulance:
-                    # Assign ambulance
-                    assignment = dispatch_manager.assign_ambulance(
-                        case_id=case_id,
-                        ambulance_id=nearest_ambulance['ambulance_id'],
-                        patient_latitude=default_lat,
-                        patient_longitude=default_lon,
-                        destination_latitude=default_lat,
-                        destination_longitude=default_lon,
-                        patient_phone=callback_phone,
-                        priority='CRITICAL' if is_immediate_emergency else 'HIGH',  # NEW
-                        db_session=db_session
-                    )
-                    
-                    ambulance_assigned = True
-                    estimated_arrival_time = nearest_ambulance['estimated_time_minutes']
-                    
-                    # Audit log for dispatch
-                    dispatch_audit = AuditLog(
-                        case_id=case_id,
-                        action_type='ambulance_dispatched_immediate' if is_immediate_emergency else 'ambulance_dispatched',  # NEW
-                        actor='dispatch_system_EMERGENCY' if is_immediate_emergency else 'dispatch_system',
-                        action_details={
-                            'ambulance_id': nearest_ambulance['ambulance_id'],
-                            'estimated_time': estimated_arrival_time,
-                            'dispatch_priority': 'CRITICAL' if is_immediate_emergency else 'HIGH',  # NEW
-                            'is_immediate_emergency': is_immediate_emergency,  # NEW
-                            'is_unidentified_patient': is_unidentified  # NEW
-                        }
-                    )
-                    db_session.add(dispatch_audit)
-                    db_session.commit()
-            except Exception as e:
-                print(f"Error dispatching ambulance: {str(e)}")
+        ambulance_type = None
+        prerarrival_instructions = None
         
         db_session.close()
         
@@ -557,12 +667,17 @@ def submit_assessment():
         # Return response
         response_data = {
             'case_id': case_id,
-            'patient_name': patient_name,  # ADD PATIENT INFO
-            'patient_age': patient_age,
+            'patient_name': patient_name,
+            'patient_age_years': int(patient_age_years) if patient_age_years else 0,
+            'patient_age_months': int(patient_age_months) if patient_age_months else 0,
+            'patient_age_display': f"{int(patient_age_years) if patient_age_years else 0} years {int(patient_age_months) if patient_age_months else 0} months",
+            'patient_age_in_months': patient_age_in_months,
             'patient_gender': patient_gender,
             'chief_complaint': chief_complaint,
             'callback_phone': callback_phone,
             'patient_address': patient_address,
+            'patient_address_latitude': final_lat,
+            'patient_address_longitude': final_lon,
             'risk_score': final_prediction['risk_score'],
             'risk_level': risk_level,
             'recommendation': final_prediction['recommendation'],
@@ -571,10 +686,8 @@ def submit_assessment():
             'estimated_wait': routing_decision['estimated_wait_minutes'],
             'ambulance_assigned': ambulance_assigned,
             'estimated_arrival_time': estimated_arrival_time,
-            'ambulance_type': ambulance_type,  # NEW: ALS or BLS
-            'prerarrival_instructions': prerarrival_instructions,  # NEW: Instructions
-            'is_immediate_emergency': is_immediate_emergency,  # NEW - Send back to frontend
-            'is_unidentified_patient': is_unidentified  # NEW
+            'is_immediate_emergency': is_immediate_emergency,
+            'is_unidentified_patient': is_unidentified
         }
         
         return jsonify(response_data)
@@ -623,8 +736,8 @@ def complete_intake(case_id, agent, intake_result):
         conscious_status=case_data.get('conscious'),
         medical_history=case_data.get('history'),
         # Location fields (use defaults for now)
-        patient_latitude=case_data.get('latitude', default_lat),
-        patient_longitude=case_data.get('longitude', default_lon),
+        inc_lat=case_data.get('latitude', default_lat),
+        inc_long=case_data.get('longitude', default_lon),
         patient_address=case_data.get('address', 'Address not provided'),
         patient_city=case_data.get('city', 'Seattle'),
         patient_state=case_data.get('state', 'WA'),
