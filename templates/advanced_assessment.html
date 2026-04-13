@@ -47,7 +47,7 @@
 
         .header h1 {
             font-size: 28px;
-            margin-bottom: 5px;
+            margin-top: 15px;
         }
 
         .header p {
@@ -353,7 +353,7 @@
 
         .language-selector {
             position: absolute;
-            top: 15px;
+            top: 10px;
             right: 15px;
             display: flex;
             gap: 8px;
@@ -775,10 +775,18 @@
                     This case requires immediate medical attention.
                 </div>
 
-                <div class="form-row">
-                    <button class="btn-secondary" onclick="previousSection()">← Back</button>
-                    <button class="btn-primary" onclick="submitAssessment()">📞 Submit</button>
-                </div>
+  <div class="form-row" id="actionButtons">
+    <button class="btn-primary" id="submitBtn" style="grid-column: 1 / -1;">📞 Submit</button>
+</div>
+
+<div id="successBox" style="display:none; text-align:center; margin-top:20px;">
+    <h2 style="color: green;">✅ Successfully Submitted</h2>
+    <p id="caseIdText"></p>
+</div>
+
+<div id="errorBox" style="display:none; text-align:center; margin-top:20px; color:red;">
+</div>
+               
             </div>
 
             <!-- Loading State -->
@@ -821,6 +829,28 @@
             </div>
         </div>
     </div>
+    <button id="submitBtn" class="btn-primary" ">
+  📞 Submit
+</button>
+
+<script>
+   
+  document.addEventListener("DOMContentLoaded", function () {
+  
+    document.getElementById("submitBtn").addEventListener("click", () => {
+        // Validate we're on final step
+        if (currentStep < totalSteps) {
+            nextSection(currentStep);
+            return;
+        }
+
+        // Call submitAssessment - it will handle success popup display
+        submitAssessment();
+      
+    });
+});
+   
+</script>
 
     <script>
         let currentStep = 1;
@@ -1189,7 +1219,7 @@
 
             const alert = document.getElementById('emergencyAlert');
             if (emergencies.some(e => complaint.includes(e))) {
-                alert.textContent = '🚨 IMMEDIATE EMERGENCY - Ambulance will be dispatched upon submission!';
+                alert.textContent = '🚨 IMMEDIATE EMERGENCY - Please wait while we review your case.';
                 alert.classList.add('show');
             } else {
                 alert.classList.remove('show');
@@ -1304,70 +1334,29 @@
 
         function displayResults(result) {
             if (result.error) {
-                alert('Error: ' + result.error);
+                document.getElementById('errorBox').style.display = 'block';
+                document.getElementById('errorBox').innerText = '❌ Error: ' + result.error;
                 return;
             }
-
-            const riskColorMap = {
-                'high': '🔴 HIGH RISK',
-                'moderate': '🟡 MODERATE',
-                'low': '🟢 LOW RISK'
-            };
-
-            document.getElementById('caseId').textContent = result.case_id;
             
-            // Add patient information display
-            if (!document.getElementById('resultPatientName')) {
-                const resultDetails = document.getElementById('resultDetails') || document.querySelector('.result-details');
-                if (resultDetails) {
-                    const patientInfoHtml = `
-                        <div class="result-item">
-                            <span class="result-label">Patient Name:</span>
-                            <span class="result-value" id="resultPatientName">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Age / Gender:</span>
-                            <span class="result-value" id="resultAgeGender">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Chief Complaint:</span>
-                            <span class="result-value" id="resultComplaint">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Phone:</span>
-                            <span class="result-value" id="resultPhone">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Address:</span>
-                            <span class="result-value" id="resultAddress">-</span>
-                        </div>
-                    `;
-                    const firstItem = resultDetails.querySelector('.result-item');
-                    if (firstItem) {
-                        firstItem.insertAdjacentHTML('beforebegin', patientInfoHtml);
-                    }
-                }
+            // ✅ Hide action buttons
+            const actionButtons = document.getElementById('actionButtons');
+            if (actionButtons) {
+                actionButtons.style.display = 'none';
             }
             
-            // Fill in patient information
-            document.getElementById('resultPatientName').textContent = result.patient_name || '-';
-            document.getElementById('resultAgeGender').textContent = 
-                `${result.patient_age || '-'} / ${result.patient_gender || '-'}`;
-            document.getElementById('resultComplaint').textContent = result.chief_complaint || '-';
-            document.getElementById('resultPhone').textContent = result.callback_phone || '-';
-            document.getElementById('resultAddress').textContent = result.patient_address || '-';
-            
-            document.getElementById('riskLevel').textContent = riskColorMap[result.risk_level] || result.risk_level;
-            document.getElementById('riskScore').textContent = (result.risk_score * 100).toFixed(1) + '%';
-            document.getElementById('ambulanceStatus').textContent = result.ambulance_assigned ? '✓ DISPATCHED' : '✗ Not Required';
-            document.getElementById('eta').textContent = result.estimated_arrival_time ? result.estimated_arrival_time + ' min' : 'N/A';
-            document.getElementById('routedTo').textContent = result.routed_to || 'Queue';
+            // ✅ Show success message
+            const successBox = document.getElementById('successBox');
+            if (successBox) {
+                successBox.style.display = 'block';
+                const caseIdText = document.getElementById('caseIdText');
+                if (caseIdText) {
+                    caseIdText.innerText = 'Case ID: ' + result.case_id;
+                }
+            }
 
-            document.getElementById('resultIcon').textContent = result.risk_level === 'high' ? '🚑' : '✓';
-            document.getElementById('resultTitle').textContent = result.risk_level === 'high' ? 'EMERGENCY - Ambulance Dispatched!' : 'Assessment Complete';
-
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById('results').classList.add('show');
+            // Optional: Log result for debugging
+            console.log('Assessment submitted successfully:', result);
         }
 
         function resetForm() {
@@ -1380,5 +1369,7 @@
             updateProgress();
         }
     </script>
+
+   
 </body>
 </html>

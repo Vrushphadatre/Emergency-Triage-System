@@ -505,5 +505,22 @@ data.current_queue_lengths.dispatcher;
         // Initial load
         loadMetrics();
     </script>
+
+    <script>
+function fetchExternalData() {
+    fetch('/fetch_incident_data', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.case_id) {
+            alert('✅ Case created: ' + data.case_id);
+            // Optionally reload page or show case
+        }
+    })
+    .catch(e => alert('❌ Error: ' + e));
+}
+</script>
 </body>
 </html>

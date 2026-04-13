@@ -10,6 +10,7 @@ from datetime import datetime
 import sys
 from pathlib import Path
 import json
+import requests
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parent))
@@ -1203,6 +1204,66 @@ def get_dispatch_summary():
     
     return jsonify(summary)
 
+
+@app.route('/fetch_incident_data', methods=['POST'])
+def fetch_incident_data():
+    """
+    Sync with external incident data from Apollo EMS
+    """
+    import requests
+    
+    try:
+        # Step A: Call external API to get incident data
+        external_api_url = 'https://apolloems.in/api/getIncAiData'
+        
+        # Send POST request to external API
+        response = requests.post(external_api_url, timeout=10)
+        
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch from external API'}), 400
+        
+        # Step B: Get the data
+        incident_data = response.json()
+        
+        # Step C: Map external data to your system format
+        mapped_data = {
+            'patientName': incident_data.get('patient_name', 'Unknown'),
+            'patientAge': incident_data.get('patient_age', 0),
+            'patientAgeUnit': 'years',
+            'mobileNo': incident_data.get('phone', '0000000000'),
+            'patientGender': incident_data.get('gender', 'M'),
+            'incAddress': incident_data.get('address', ''),
+            'incLat': incident_data.get('latitude', 0),
+            'incLong': incident_data.get('longitude', 0),
+            'chiefComplaint': incident_data.get('complaint', ''),
+            'medicalHistory': incident_data.get('medical_history', ''),
+        }
+        
+        # Step D: Create case in your system
+        # (Use your existing parameter mapper and submit logic)
+        data = map_incoming_parameters(mapped_data)
+        case_id = f"CASE_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+        
+        # Save to database (simplified)
+        case = TriageCase(
+            case_id=case_id,
+            patient_name=data.get('patient_name', 'Patient'),
+            patient_age_years=data.get('patient_age_years', 0),
+            patient_age_months=data.get('patient_age_months', 0),
+            chief_complaint=data.get('chief_complaint', ''),
+            # ... add other fields
+        )
+        db.session.add(case)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'case_id': case_id,
+            'message': 'Incident data fetched and case created'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ============================================================================
 # MAIN
