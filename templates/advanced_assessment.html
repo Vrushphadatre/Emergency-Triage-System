@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -87,6 +88,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -257,8 +259,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .alert.show {
@@ -315,7 +322,7 @@
             user-select: none;
         }
 
-        .symptom-checkbox input:checked ~ .symptom-label {
+        .symptom-checkbox input:checked~.symptom-label {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
@@ -498,10 +505,13 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -545,32 +555,41 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">Patient Name</label>
-                        <input type="text" id="patientName" placeholder="Full name" onkeypress="return /[a-zA-Z\s\-]/.test(String.fromCharCode(event.which || event.keyCode))">
+                        <input type="text" id="patientName" placeholder="Full name"
+                            onkeypress="return /[a-zA-Z\s\-]/.test(String.fromCharCode(event.which || event.keyCode))">
                     </div>
                     <div class="form-group">
                         <label class="required">Age</label>
                         <div style="display: flex; gap: 10px; align-items: flex-end;">
                             <div style="flex: 2;">
-                                <label style="font-size: 12px; color: #555; margin-bottom: 4px; display: block;">Value <span style="color: red;">*</span></label>
-                                <input type="number" id="patientAge" placeholder="Enter age" min="0" max="999" step="0.1" style="width: 100%;" onchange="validateAgeInput()">
+                                <label style="font-size: 12px; color: #555; margin-bottom: 4px; display: block;">Value
+                                    <span style="color: red;">*</span></label>
+                                <input type="number" id="patientAge" placeholder="Enter age" min="0" max="999"
+                                    step="0.1" style="width: 100%;" onchange="validateAgeInput()">
                             </div>
                             <div style="flex: 1;">
-                                <label style="font-size: 12px; color: #555; margin-bottom: 4px; display: block;">Unit <span style="color: red;">*</span></label>
-                                <select id="patientAgeUnit" style="width: 100%; padding: 10px 8px; border: 2px solid #dfe6e9; border-radius: 6px; background-color: white; font-size: 13px;" onchange="validateAgeInput()">
+                                <label style="font-size: 12px; color: #555; margin-bottom: 4px; display: block;">Unit
+                                    <span style="color: red;">*</span></label>
+                                <select id="patientAgeUnit"
+                                    style="width: 100%; padding: 10px 8px; border: 2px solid #dfe6e9; border-radius: 6px; background-color: white; font-size: 13px;"
+                                    onchange="validateAgeInput()">
                                     <option value="years">Years</option>
                                     <option value="months">Months</option>
                                     <option value="days">Days</option>
                                 </select>
                             </div>
                         </div>
-                        <small style="color: #666; margin-top: 6px; display: block;">Example: Enter 5 Years, or 18 Months, or 500 Days</small>
+                        <small style="color: #666; margin-top: 6px; display: block;">Example: Enter 5 Years, or 18
+                            Months, or 500 Days</small>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">Mobile Number</label>
-                        <input type="tel" id="callerPhone" placeholder="10-digit number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" onkeypress="return /[0-9]/.test(String.fromCharCode(event.which || event.keyCode))">
+                        <input type="tel" id="callerPhone" placeholder="10-digit number" maxlength="10"
+                            pattern="[0-9]{10}" inputmode="numeric"
+                            onkeypress="return /[0-9]/.test(String.fromCharCode(event.which || event.keyCode))">
                     </div>
                     <div class="form-group">
                         <label>Gender</label>
@@ -587,11 +606,15 @@
                     <label class="required">Location / Address</label>
                     <div style="display: flex; gap: 8px; align-items: flex-start;">
                         <div style="flex: 1;">
-                            <input type="text" id="location" placeholder="Street address or landmark" style="width: 100%;">
+                            <input type="text" id="location" placeholder="Street address or landmark"
+                                style="width: 100%;">
                             <div id="geoStatus" style="font-size: 12px; margin-top: 4px; color: #666;"></div>
-                            <div id="geoCoords" style="font-size: 11px; color: #999; margin-top: 2px;" title="Latitude, Longitude"></div>
+                            <div id="geoCoords" style="font-size: 11px; color: #999; margin-top: 2px;"
+                                title="Latitude, Longitude"></div>
                         </div>
-                        <button type="button" id="geoLocBtn" class="btn-secondary" style="margin-top: 0; padding: 8px 12px; height: fit-content; white-space: nowrap;" onclick="fetchGeolocation()" title="Get current GPS coordinates">📍 Auto-Locate</button>
+                        <button type="button" id="geoLocBtn" class="btn-secondary"
+                            style="margin-top: 0; padding: 8px 12px; height: fit-content; white-space: nowrap;"
+                            onclick="fetchGeolocation()" title="Get current GPS coordinates">📍 Auto-Locate</button>
                     </div>
                 </div>
 
@@ -609,7 +632,7 @@
                     <label class="required">Primary Complaint</label>
                     <select id="chiefComplaint" onchange="updateComplaintDetails()">
                         <option value="">-- Select Primary Complaint --</option>
-                        
+
                         <!-- IMMEDIATE EMERGENCIES -->
                         <optgroup label="IMMEDIATE EMERGENCIES">
                             <option value="Breathing Difficulty">Breathing Difficulty</option>
@@ -617,10 +640,12 @@
                             <option value="Choking">Choking</option>
                             <option value="Convulsions / Fits / Seizures">Convulsions / Fits / Seizures</option>
                             <option value="Drowning / Near Drowning">Drowning / Near Drowning</option>
-                            <option value="Unconscious / unresponsive patient">Unconscious / Unresponsive Patient</option>
+                            <option value="Unconscious / unresponsive patient">Unconscious / Unresponsive Patient
+                            </option>
                             <option value="Paralysis / stroke">Paralysis / Stroke</option>
                             <option value="Hematemesis [vomiting blood]">Hematemesis [Vomiting Blood]</option>
-                            <option value="Confusion or altered mental status">Confusion or Altered Mental Status</option>
+                            <option value="Confusion or altered mental status">Confusion or Altered Mental Status
+                            </option>
                             <option value="Trauma - Head injury">Trauma - Head Injury</option>
                             <option value="Trauma - Bleeding">Trauma - Bleeding</option>
                             <option value="Trauma - Gunshot injury">Trauma - Gunshot Injury</option>
@@ -628,8 +653,10 @@
                             <option value="Trauma - chest wall">Trauma - Chest Wall</option>
                             <option value="RTA (Road Traffic Accident)">RTA (Road Traffic Accident)</option>
                             <option value="Road traffic accident: vehicle on fire">RTA - Vehicle on Fire</option>
-                            <option value="Road traffic accident: pinned / struck patient">RTA - Pinned / Struck Patient</option>
-                            <option value="Road traffic accident: vehicle off bridge/height">RTA - Vehicle Off Bridge/Height</option>
+                            <option value="Road traffic accident: pinned / struck patient">RTA - Pinned / Struck Patient
+                            </option>
+                            <option value="Road traffic accident: vehicle off bridge/height">RTA - Vehicle Off
+                                Bridge/Height</option>
                             <option value="Road traffic accident: auto - pedestrian">RTA - Auto Pedestrian</option>
                             <option value="Road traffic accident: Pregnant lady">RTA - Pregnant Lady</option>
                             <option value="Accident of boat/ship">Accident of Boat/Ship</option>
@@ -644,7 +671,7 @@
                             <option value="Suicide attempt">Suicide Attempt</option>
                             <option value="Attack / Assault">Attack / Assault</option>
                         </optgroup>
-                        
+
                         <!-- MODERATE EMERGENCIES -->
                         <optgroup label="MODERATE EMERGENCIES">
                             <option value="Burns">Burns</option>
@@ -662,7 +689,7 @@
                             <option value="Eye pain">Eye Pain</option>
                             <option value="Child patient / Pediatric patient">Child Patient / Pediatric</option>
                         </optgroup>
-                        
+
                         <!-- ROUTINE COMPLAINTS -->
                         <optgroup label="OTHER COMPLAINTS">
                             <option value="Headache">Headache</option>
@@ -671,7 +698,8 @@
                             <option value="Cough & Cold">Cough & Cold</option>
                             <option value="Throat Infection">Throat Infection</option>
                             <option value="Back Pain">Back Pain</option>
-                            <option value="Joint Pain-Body Movement Difficulty">Joint Pain - Body Movement Difficulty</option>
+                            <option value="Joint Pain-Body Movement Difficulty">Joint Pain - Body Movement Difficulty
+                            </option>
                             <option value="Body Pain / Swelling">Body Pain / Swelling</option>
                             <option value="Toothache / Dental Pain">Toothache / Dental Pain</option>
                             <option value="Ear Pain / Infection">Ear Pain / Infection</option>
@@ -742,7 +770,8 @@
 
                 <div class="form-group">
                     <label>Medical History</label>
-                    <textarea id="medicalHistory" placeholder="Known conditions, allergies, medications, previous surgeries..."></textarea>
+                    <textarea id="medicalHistory"
+                        placeholder="Known conditions, allergies, medications, previous surgeries..."></textarea>
                 </div>
 
                 <div class="form-row">
@@ -775,18 +804,18 @@
                     This case requires immediate medical attention.
                 </div>
 
-  <div class="form-row" id="actionButtons">
-    <button class="btn-primary" id="submitBtn" style="grid-column: 1 / -1;">📞 Submit</button>
-</div>
+                <div class="form-row" id="actionButtons">
+                    <button class="btn-primary" id="submitBtn" style="grid-column: 1 / -1;">📞 Submit</button>
+                </div>
 
-<div id="successBox" style="display:none; text-align:center; margin-top:20px;">
-    <h2 style="color: green;">✅ Successfully Submitted</h2>
-    <p id="caseIdText"></p>
-</div>
+                <div id="successBox" style="display:none; text-align:center; margin-top:20px;">
+                    <h2 style="color: green;">✅ Successfully Submitted</h2>
+                    <p id="caseIdText"></p>
+                </div>
 
-<div id="errorBox" style="display:none; text-align:center; margin-top:20px; color:red;">
-</div>
-               
+                <div id="errorBox" style="display:none; text-align:center; margin-top:20px; color:red;">
+                </div>
+
             </div>
 
             <!-- Loading State -->
@@ -825,29 +854,30 @@
                         <span class="result-value" id="routedTo">-</span>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="resetForm()" style="margin-top: 20px; width: 100%;">New Assessment</button>
+                <button class="btn-primary" onclick="resetForm()" style="margin-top: 20px; width: 100%;">New
+                    Assessment</button>
             </div>
         </div>
     </div>
 
-<script>
-   
-  document.addEventListener("DOMContentLoaded", function () {
-  
-    document.getElementById("submitBtn").addEventListener("click", () => {
-        // Validate we're on final step
-        if (currentStep < totalSteps) {
-            nextSection(currentStep);
-            return;
-        }
+    <script>
 
-        // Call submitAssessment - it will handle success popup display
-        submitAssessment();
-      
-    });
-});
-   
-</script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            document.getElementById("submitBtn").addEventListener("click", () => {
+                // Validate we're on final step
+                if (currentStep < totalSteps) {
+                    nextSection(currentStep);
+                    return;
+                }
+
+                // Call submitAssessment - it will handle success popup display
+                submitAssessment();
+
+            });
+        });
+
+    </script>
 
     <script>
         let currentStep = 1;
@@ -943,12 +973,12 @@
             const btn = document.getElementById('geoLocBtn');
             const status = document.getElementById('geoStatus');
             const coords = document.getElementById('geoCoords');
-            
+
             btn.disabled = true;
             btn.textContent = '⏳ Locating...';
             status.textContent = '';
             coords.textContent = '';
-            
+
             // Use IP-based geolocation (works on HTTP and HTTPS, no permissions needed)
             fetch('https://ipapi.co/json/')
                 .then(response => response.json())
@@ -956,7 +986,7 @@
                     const lat = parseFloat(data.latitude).toFixed(6);
                     const lon = parseFloat(data.longitude).toFixed(6);
                     geoCoordinates = { lat, lon };
-                    
+
                     status.textContent = `✓ Location detected (${data.city}, ${data.region})`;
                     status.style.color = '#5cb85c';
                     coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
@@ -981,8 +1011,8 @@
             const ageValue = ageInput ? (parseFloat(ageInput.value) || 0) : 0;
             const ageUnitSelect = document.getElementById('patientAgeUnit');
             const ageUnit = ageUnitSelect ? ageUnitSelect.value : 'years';
-            
-            switch(ageUnit) {
+
+            switch (ageUnit) {
                 case 'years':
                     return ageValue * 12;
                 case 'months':
@@ -993,33 +1023,33 @@
                     return ageValue * 12;  // Default to years
             }
         }
-        
+
         function getAgeDisplayText() {
             const ageInput = document.getElementById('patientAge');
             const ageUnitSelect = document.getElementById('patientAgeUnit');
-            
+
             // Make sure elements exist
             if (!ageInput || !ageUnitSelect) {
                 console.warn('Age input or unit select element not found');
                 return '-';
             }
-            
+
             const rawValue = ageInput.value.trim();
             const ageValue = parseFloat(rawValue);
             const ageUnit = ageUnitSelect.value || 'years';
-            
+
             console.log('Age Display - Raw Value:', rawValue, 'Parsed:', ageValue, 'Unit:', ageUnit, 'Valid:', !isNaN(ageValue) && ageValue > 0);
-            
+
             // Check if we have a valid age value
             if (isNaN(ageValue) || ageValue === 0 || rawValue === '') {
                 return '-';
             }
-            
+
             // Convert to human-readable format (years, months, days)
             const totalMonths = getAgeInMonths();
             const years = Math.floor(totalMonths / 12);
             const months = Math.floor(totalMonths % 12);
-            
+
             if (years > 0 && months > 0) {
                 return `${years} years ${months} months`;
             } else if (years > 0) {
@@ -1029,34 +1059,34 @@
             } else if (ageValue > 0) {
                 return `${ageValue} ${ageUnit}`;
             }
-            
+
             return '-';
         }
 
         function switchLanguage(lang) {
             currentLanguage = lang;
-            
+
             // Update button styling
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
+
             // Update UI text
             document.getElementById('headerSubtitle').textContent = translations[lang]['headerSubtitle'];
-            
+
             // Update form labels
             const labels = {
                 'step1-label': 'step_1_title',
                 'step2-label': 'step_2_title',
                 'step3-label': 'step_3_title',
             };
-            
+
             for (let id in labels) {
                 const elem = document.getElementById(id);
                 if (elem) {
                     elem.textContent = translations[lang][labels[id]];
                 }
             }
-            
+
             // Update placeholders and labels
             const inputs = {
                 'patientName': 'patientName',
@@ -1067,7 +1097,7 @@
                 'chiefComplaint': 'chief_complaint',
                 'medicalHistory': 'medicalHistory',
             };
-            
+
             for (let inputId in inputs) {
                 const input = document.getElementById(inputId);
                 if (input) {
@@ -1078,7 +1108,7 @@
                     }
                 }
             }
-            
+
             console.log('Language switched to:', lang);
         }
 
@@ -1092,7 +1122,7 @@
                 currentStep++;
                 updateStepIndicator();
                 updateProgress();
-                
+
                 // Populate summary when moving to step 3
                 if (currentStep === 3) {
                     updateSummary();
@@ -1130,12 +1160,12 @@
             const ageInput = document.getElementById('patientAge');
             let age = parseFloat(ageInput.value);
             const ageUnit = document.getElementById('patientAgeUnit').value;
-            
+
             // Convert to years for validation
             let ageInYears = age;
             if (ageUnit === 'months') ageInYears = age / 12;
             if (ageUnit === 'days') ageInYears = age / 365;
-            
+
             if (ageInYears > 150) {
                 ageInput.value = '';
                 alert('Age cannot exceed 150 years');
@@ -1144,7 +1174,7 @@
                 ageInput.value = 0;
             }
         }
-        
+
         function validatePhoneNumber(phone) {
             // Remove any non-digit characters
             const cleanPhone = phone.replace(/\D/g, '');
@@ -1164,23 +1194,23 @@
                 const name = document.getElementById('patientName').value.trim();
                 if (!name) errors.push('Patient name required');
                 if (name && !validatePatientName(name)) errors.push('Patient name can only contain letters, spaces, and hyphens (no numbers or special characters)');
-                
+
                 const ageValue = parseFloat(document.getElementById('patientAge').value);
                 if (!document.getElementById('patientAge').value) errors.push('Age required');
-                
+
                 // Convert age to years based on selected unit
                 const ageUnit = document.getElementById('patientAgeUnit').value;
                 let ageInYears = ageValue;
                 if (ageUnit === 'months') ageInYears = ageValue / 12;
                 if (ageUnit === 'days') ageInYears = ageValue / 365;
-                
+
                 if (ageInYears > 150) errors.push('Age cannot exceed 150 years');
                 if (ageInYears < 0) errors.push('Age cannot be negative');
-                
+
                 const phone = document.getElementById('callerPhone').value.trim();
                 if (!phone) errors.push('Phone number required');
                 if (phone && !validatePhoneNumber(phone)) errors.push('Phone must be exactly 10 digits (0-9 only)');
-                
+
                 if (!document.getElementById('location').value.trim()) errors.push('Location required');
             } else if (step === 2) {
                 if (!document.getElementById('chiefComplaint').value) errors.push('Chief complaint required');
@@ -1215,11 +1245,11 @@
 
         function updateSummary() {
             document.getElementById('summaryName').textContent = document.getElementById('patientName').value || '-';
-            
+
             // Get age - read directly from form fields by ID
             const ageInput = document.getElementById('patientAge');
             const ageUnitInput = document.getElementById('patientAgeUnit');
-            
+
             let ageDisplay = '-';
             if (ageInput && ageUnitInput) {
                 const ageValue = parseFloat(ageInput.value) || 0;
@@ -1240,7 +1270,7 @@
                     }
                 }
             }
-            
+
             const gender = document.getElementById('gender').value;
             document.getElementById('summaryAgeGender').textContent = `${ageDisplay} / ${gender || 'Not specified'}`;
             document.getElementById('summaryComplaint').textContent = document.getElementById('chiefComplaint').value || '-';
@@ -1255,10 +1285,68 @@
             }
         }
 
+        // function submitAssessment() {
+        //     updateSummary();
+
+        //     // If not on final step, go to next step
+        //     if (currentStep < totalSteps) {
+        //         nextSection(currentStep);
+        //         updateSummary();
+        //         return;
+        //     }
+
+        //     showLoading(true);
+
+        //     // Convert age to years and months for storage
+        //     const ageValue = parseFloat(document.getElementById('patientAge').value) || 0;
+        //     const ageUnit = document.getElementById('patientAgeUnit').value;
+        //     const totalMonths = getAgeInMonths();
+        //     const ageYears = Math.floor(totalMonths / 12);
+        //     const ageMonths = Math.floor(totalMonths % 12);
+
+        //     const assessmentData = {
+        //         patientName: document.getElementById('patientName').value,
+        //         mobileNo: document.getElementById('callerPhone').value,
+        //         incAddress: document.getElementById('location').value,
+        //         incLat: geoCoordinates.lat ? parseFloat(geoCoordinates.lat) : null,
+        //         incLong: geoCoordinates.lon ? parseFloat(geoCoordinates.lon) : null,
+        //         patientAge: ageValue,  // Raw age value
+        //         patientAgeUnit: ageUnit,  // Unit (years, months, days)
+        //         patientGender: document.getElementById('gender').value,
+        //         chiefComplaint: document.getElementById('chiefComplaint').value,
+        //         medicalHistory: document.getElementById('medicalHistory').value,
+        //         language: currentLanguage,
+        //         patientKnown: true,
+        //         isUnidentified: false,
+        //         durationChiefComplaint: document.getElementById('duration').value
+        //     };
+
+        //     console.log('Submitting assessment:', assessmentData);
+
+        //     fetch('/submit_assessment', {
+        //         method: 'POST',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify(assessmentData)
+        //     })
+        //     .then(response => {
+        //         console.log('Response status:', response.status);
+        //         return response.json();
+        //     })
+        //     .then(result => {
+        //         console.log('Result:', result);
+        //         showLoading(false);
+        //         displayResults(result);
+        //     })
+        //     .catch(error => {
+        //         console.error('Error:', error);
+        //         showLoading(false);
+        //         alert('Error: ' + error.message);
+        //     });
+        // }
+
         function submitAssessment() {
             updateSummary();
 
-            // If not on final step, go to next step
             if (currentStep < totalSteps) {
                 nextSection(currentStep);
                 updateSummary();
@@ -1267,21 +1355,20 @@
 
             showLoading(true);
 
-            // Convert age to years and months for storage
             const ageValue = parseFloat(document.getElementById('patientAge').value) || 0;
             const ageUnit = document.getElementById('patientAgeUnit').value;
             const totalMonths = getAgeInMonths();
             const ageYears = Math.floor(totalMonths / 12);
             const ageMonths = Math.floor(totalMonths % 12);
-            
+
             const assessmentData = {
                 patientName: document.getElementById('patientName').value,
                 mobileNo: document.getElementById('callerPhone').value,
                 incAddress: document.getElementById('location').value,
                 incLat: geoCoordinates.lat ? parseFloat(geoCoordinates.lat) : null,
                 incLong: geoCoordinates.lon ? parseFloat(geoCoordinates.lon) : null,
-                patientAge: ageValue,  // Raw age value
-                patientAgeUnit: ageUnit,  // Unit (years, months, days)
+                patientAge: ageValue,
+                patientAgeUnit: ageUnit,
                 patientGender: document.getElementById('gender').value,
                 chiefComplaint: document.getElementById('chiefComplaint').value,
                 medicalHistory: document.getElementById('medicalHistory').value,
@@ -1293,25 +1380,42 @@
 
             console.log('Submitting assessment:', assessmentData);
 
-            fetch('/submit_assessment', {
+            const api1 = fetch('/submit_assessment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(assessmentData)
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(result => {
-                console.log('Result:', result);
-                showLoading(false);
-                displayResults(result);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showLoading(false);
-                alert('Error: ' + error.message);
             });
+
+            const api2 = fetch('https://apolloems.in/api/getIncAiData', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(assessmentData)
+            });
+
+            Promise.all([api1, api2])
+                .then(async ([res1, res2]) => {
+                    console.log('API1 status:', res1.status);
+                    console.log('API2 status:', res2.status);
+
+                    const result1 = await res1.json();
+                    const result2 = await res2.json();
+
+                    console.log('API1 result:', result1);
+                    console.log('API2 result:', result2);
+
+                    showLoading(false);
+
+                    // You can merge or choose one result
+                    displayResults({
+                        primary: result1,
+                        aiData: result2
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showLoading(false);
+                    alert('Error: ' + error.message);
+                });
         }
 
         function showLoading(show) {
@@ -1325,13 +1429,13 @@
                 document.getElementById('errorBox').innerText = '❌ Error: ' + result.error;
                 return;
             }
-            
+
             // ✅ Hide action buttons
             const actionButtons = document.getElementById('actionButtons');
             if (actionButtons) {
                 actionButtons.style.display = 'none';
             }
-            
+
             // ✅ Show success message
             const successBox = document.getElementById('successBox');
             if (successBox) {
@@ -1357,6 +1461,7 @@
         }
     </script>
 
-   
+
 </body>
+
 </html>
