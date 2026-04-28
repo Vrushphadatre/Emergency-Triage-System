@@ -947,43 +947,33 @@
             const status = document.getElementById('geoStatus');
             const coords = document.getElementById('geoCoords');
             
-            if (!navigator.geolocation) {
-                status.textContent = 'Geolocation not supported on this device';
-                status.style.color = '#d9534f';
-                return;
-            }
-            
             btn.disabled = true;
             btn.textContent = '⏳ Locating...';
             status.textContent = '';
             coords.textContent = '';
             
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const lat = position.coords.latitude.toFixed(6);
-                    const lon = position.coords.longitude.toFixed(6);
+            // Use IP-based geolocation (works on HTTP and HTTPS, no permissions needed)
+            fetch('https://ipapi.co/json/')
+                .then(response => response.json())
+                .then(data => {
+                    const lat = parseFloat(data.latitude).toFixed(6);
+                    const lon = parseFloat(data.longitude).toFixed(6);
                     geoCoordinates = { lat, lon };
                     
-                    status.textContent = '✓ Location captured successfully';
+                    status.textContent = `✓ Location detected (${data.city}, ${data.region})`;
                     status.style.color = '#5cb85c';
                     coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
                     btn.disabled = false;
                     btn.textContent = '📍 Auto-Locate (✓)';
-                },
-                function(error) {
-                    let errorMsg = 'Unable to get location';
-                    if (error.code === 1) errorMsg = 'Permission denied for location access';
-                    if (error.code === 2) errorMsg = 'Location service unavailable';
-                    if (error.code === 3) errorMsg = 'Location request timed out';
-                    
-                    status.textContent = errorMsg;
+                })
+                .catch(error => {
+                    console.error('Geolocation error:', error);
+                    status.textContent = 'Could not detect location. Please enter address manually.';
                     status.style.color = '#d9534f';
                     coords.textContent = '';
                     btn.disabled = false;
                     btn.textContent = '📍 Auto-Locate';
-                },
-                { timeout: 10000, enableHighAccuracy: false }
-            );
+                });
         }
 
         // ============================================================================
