@@ -75,12 +75,23 @@
 
         .section {
             margin-bottom: 35px;
-            display: none;
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            overflow: hidden;
+            max-height: 0;
         }
 
         .section.active {
-            display: block;
-            animation: slideIn 0.3s ease;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            min-height: auto !important;
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
         }
 
         @keyframes slideIn {
@@ -328,14 +339,41 @@
             border-color: var(--primary);
         }
 
+        /* Radio Button Styling */
+        input[type="radio"] {
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        input[type="radio"]:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Radio label container styling */
+        label:has(input[type="radio"]) {
+            transition: all 0.2s ease;
+        }
+
+        label:has(input[type="radio"]):hover {
+            background: rgba(102, 126, 234, 0.05) !important;
+        }
+
+        input[type="radio"]:checked + span,
+        input[type="radio"]:focus + span {
+            font-weight: 600;
+        }
+
         .results {
             display: none;
             padding: 30px;
             text-align: center;
+            visibility: hidden;
         }
 
         .results.show {
             display: block;
+            visibility: visible;
         }
 
         .result-icon {
@@ -619,165 +657,229 @@
                 </div>
 
                 <div class="form-row">
-                    <button class="btn-secondary" onclick="previousSection()" disabled>Back</button>
-                    <button class="btn-primary" onclick="nextSection(1)">Next →</button>
+                    <button class="btn-secondary" onclick="previousSection()" disabled>← Back</button>
+                    <button class="btn-primary" type="button" onclick="advanceStep()">Next →</button>
                 </div>
             </div>
 
             <!-- Step 2: Chief Complaint -->
             <div class="section" id="step2">
-                <div class="section-title">Chief Complaint</div>
+                <div class="section-title">Call Type & Chief Complaint</div>
 
+                <!-- Call Type Selection -->
                 <div class="form-group">
-                    <label class="required">Primary Complaint</label>
-                    <select id="chiefComplaint" onchange="updateComplaintDetails()">
-                        <option value="">-- Select Primary Complaint --</option>
-
-                        <!-- IMMEDIATE EMERGENCIES -->
-                        <optgroup label="IMMEDIATE EMERGENCIES">
-                            <option value="Breathing Difficulty">Breathing Difficulty</option>
-                            <option value="Chest pain">Chest Pain</option>
-                            <option value="Choking">Choking</option>
-                            <option value="Convulsions / Fits / Seizures">Convulsions / Fits / Seizures</option>
-                            <option value="Drowning / Near Drowning">Drowning / Near Drowning</option>
-                            <option value="Unconscious / unresponsive patient">Unconscious / Unresponsive Patient
-                            </option>
-                            <option value="Paralysis / stroke">Paralysis / Stroke</option>
-                            <option value="Hematemesis [vomiting blood]">Hematemesis [Vomiting Blood]</option>
-                            <option value="Confusion or altered mental status">Confusion or Altered Mental Status
-                            </option>
-                            <option value="Trauma - Head injury">Trauma - Head Injury</option>
-                            <option value="Trauma - Bleeding">Trauma - Bleeding</option>
-                            <option value="Trauma - Gunshot injury">Trauma - Gunshot Injury</option>
-                            <option value="Trauma - abdominal">Trauma - Abdominal</option>
-                            <option value="Trauma - chest wall">Trauma - Chest Wall</option>
-                            <option value="RTA (Road Traffic Accident)">RTA (Road Traffic Accident)</option>
-                            <option value="Road traffic accident: vehicle on fire">RTA - Vehicle on Fire</option>
-                            <option value="Road traffic accident: pinned / struck patient">RTA - Pinned / Struck Patient
-                            </option>
-                            <option value="Road traffic accident: vehicle off bridge/height">RTA - Vehicle Off
-                                Bridge/Height</option>
-                            <option value="Road traffic accident: auto - pedestrian">RTA - Auto Pedestrian</option>
-                            <option value="Road traffic accident: Pregnant lady">RTA - Pregnant Lady</option>
-                            <option value="Accident of boat/ship">Accident of Boat/Ship</option>
-                            <option value="Fall from Height">Fall from Height</option>
-                            <option value="Electrocution / lightning strike">Electrocution / Lightning Strike</option>
-                            <option value="Hazardous matter exposure">Hazardous Matter Exposure</option>
-                            <option value="Overdose / poisoning">Overdose / Poisoning</option>
-                            <option value="Heat stroke">Heat Stroke</option>
-                            <option value="Pregnancy - baby delivered">Pregnancy - Baby Delivered</option>
-                            <option value="Pregnancy - bleeding">Pregnancy - Bleeding</option>
-                            <option value="Pregnancy - abdominal pain / labor pain">Pregnancy - Labor Pain</option>
-                            <option value="Suicide attempt">Suicide Attempt</option>
-                            <option value="Attack / Assault">Attack / Assault</option>
-                        </optgroup>
-
-                        <!-- MODERATE EMERGENCIES -->
-                        <optgroup label="MODERATE EMERGENCIES">
-                            <option value="Burns">Burns</option>
-                            <option value="Animal Bite">Animal Bite</option>
-                            <option value="Allergic reaction">Allergic Reaction</option>
-                            <option value="Giddiness / Fainting">Giddiness / Fainting</option>
-                            <option value="Abnormal Behavior [Delirium]">Abnormal Behavior [Delirium]</option>
-                            <option value="Pain in abdomen / stomach">Pain in Abdomen / Stomach</option>
-                            <option value="Vomiting">Vomiting</option>
-                            <option value="Loosemotion-Vomiting">Loose Motion - Vomiting</option>
-                            <option value="Low sugar level">Low Sugar Level</option>
-                            <option value="Low body temperature">Low Body Temperature</option>
-                            <option value="Hypertension">Hypertension</option>
-                            <option value="Psychiatric problems">Psychiatric Problems</option>
-                            <option value="Eye pain">Eye Pain</option>
-                            <option value="Child patient / Pediatric patient">Child Patient / Pediatric</option>
-                        </optgroup>
-
-                        <!-- ROUTINE COMPLAINTS -->
-                        <optgroup label="OTHER COMPLAINTS">
-                            <option value="Headache">Headache</option>
-                            <option value="Dizziness">Dizziness</option>
-                            <option value="Fever">Fever</option>
-                            <option value="Cough & Cold">Cough & Cold</option>
-                            <option value="Throat Infection">Throat Infection</option>
-                            <option value="Back Pain">Back Pain</option>
-                            <option value="Joint Pain-Body Movement Difficulty">Joint Pain - Body Movement Difficulty
-                            </option>
-                            <option value="Body Pain / Swelling">Body Pain / Swelling</option>
-                            <option value="Toothache / Dental Pain">Toothache / Dental Pain</option>
-                            <option value="Ear Pain / Infection">Ear Pain / Infection</option>
-                            <option value="Eye pain">Eye Pain</option>
-                            <option value="Body Itching">Body Itching</option>
-                            <option value="Acidity">Acidity</option>
-                            <option value="Gastritis">Gastritis</option>
-                            <option value="Diarrhea / Loose motions">Diarrhea / Loose Motions</option>
-                            <option value="Weakness">Weakness</option>
-                            <option value="Numbness">Numbness</option>
-                            <option value="Vertigo">Vertigo</option>
-                            <option value="Anemia">Anemia</option>
-                            <option value="Skin Infection">Skin Infection</option>
-                            <option value="Fungal Infection">Fungal Infection</option>
-                            <option value="Worm Infection">Worm Infection</option>
-                            <option value="Mouth Ulcer / Infection">Mouth Ulcer / Infection</option>
-                            <option value="Urine Problem">Urine Problem</option>
-                            <option value="Traumatic Injury">Traumatic Injury</option>
-                            <option value="BP Checkup">BP Checkup</option>
-                            <option value="Drop Back Call">Drop Back Call</option>
-                            <option value="Corona">Corona</option>
-                            <option value="Other">Other</option>
-                        </optgroup>
-                    </select>
+                    <label class="required">Call Type</label>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-weight: 500; gap: 10px; padding: 10px; border: 2px solid var(--primary); border-radius: 6px; background: #f9f9ff;">
+                            <input type="radio" id="callTypeEmergency" name="callType" value="emergency" checked onchange="updateCallTypeView()" />
+                            <span>🚨 Emergency Call</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; font-weight: 500; gap: 10px; padding: 10px; border: 2px solid var(--border); border-radius: 6px; transition: all 0.2s;">
+                            <input type="radio" id="callTypePrebook" name="callType" value="pre-booking" onchange="updateCallTypeView()" />
+                            <span>📅 Pre-booking Call</span>
+                        </label>
+                    </div>
                 </div>
 
+                <!-- Chief Complaint Selection -->
                 <div class="form-group">
-                    <label>Associated Symptoms</label>
-                    <div class="symptom-grid" id="symptomsGrid">
-                        <div class="symptom-checkbox">
-                            <input type="checkbox" name="symptoms" value="Chest pain">
-                            <label class="symptom-label">Chest Pain</label>
+                    <label class="required">Chief Complaint</label>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <div id="emergencyComplaintGroup" style="display:none;">
+                                <select id="chiefComplaintEmergency" onchange="updateComplaintDetails()">
+                                <option value="">-- Select Complaint --</option>
+                                <option value="Event Call">Event Call</option>
+                        <option value="Eye pain">Eye Pain</option>
+                        <option value="Fall from Height">Fall from Height</option>
+                        <option value="fever">Fever</option>
+                        <option value="Fungal Infection">Fungal Infection</option>
+                        <option value="Gastritis">Gastritis</option>
+                        <option value="Giddiness/Fainting">Giddiness/Fainting</option>
+                        <option value="Hazardous matter exposure">Hazardous Matter Exposure</option>
+                        <option value="Headache">Headache</option>
+                        <option value="head stroke">Head Stroke</option>
+                        <option value="Hematemesis [vomiting blood]">Hematemesis [Vomiting Blood]</option>
+                        <option value="Hypertension">Hypertension</option>
+                        <option value="Joint Pain-Body Movement Difficulty">Joint Pain-Body Movement Difficulty</option>
+                        <option value="Loosemotion-Vomiting">Loose Motion-Vomiting</option>
+                        <option value="Low body temperature">Low Body Temperature</option>
+                        <option value="Low sugar level">Low Sugar Level</option>
+                        <option value="Mouth Ulcer/Infection">Mouth Ulcer/Infection</option>
+                        <option value="numbness">Numbness</option>
+                        <option value="Organ Transfer Call">Organ Transfer Call</option>
+                        <option value="other">Other</option>
+                        <option value="Overdose / poisoning">Overdose / Poisoning</option>
+                        <option value="Pain in abdomen/stomach">Pain in Abdomen/Stomach</option>
+                        <option value="Paralysis /stroke">Paralysis /Stroke</option>
+                        <option value="Physiotherapthy">Physiotherapy</option>
+                        <option value="Pregnancy - abdominal pain /labor pain">Pregnancy - Abdominal Pain /Labor Pain</option>
+                        <option value="Pregnancy - baby delivered">Pregnancy - Baby Delivered</option>
+                        <option value="Pregnancy - bleeding">Pregnancy - Bleeding</option>
+                        <option value="Procedure">Procedure</option>
+                        <option value="Psychiatric problems">Psychiatric Problems</option>
+                        <option value="Review">Review</option>
+                        <option value="RTA (Road Traffic Accident)">RTA (Road Traffic Accident)</option>
+                        <option value="Sample Collection">Sample Collection</option>
+                        <option value="Skin Infection">Skin Infection</option>
+                        <option value="Suicide attempt">Suicide Attempt</option>
+                        <option value="Surgery">Surgery</option>
+                        <option value="throat infection">Throat Infection</option>
+                        <option value="Toothache/ Dental Pain">Toothache/ Dental Pain</option>
+                        <option value="Trauma - abdominal">Trauma - Abdominal</option>
+                        <option value="Trauma - bleeding">Trauma - Bleeding</option>
+                        <option value="Trauma - gun shot injury">Trauma - Gun Shot Injury</option>
+                        <option value="Trauma - chest wall">Trauma - Chest Wall</option>
+                        <option value="Trauma - head injury">Trauma - Head Injury</option>
+                        <option value="Traumatic Injury">Traumatic Injury</option>
+                        <option value="Unconscious/unresponsive patient">Unconscious/Unresponsive Patient</option>
+                        <option value="urine problem">Urine Problem</option>
+                        <option value="Vertigo">Vertigo</option>
+                        <option value="vomiting">Vomiting</option>
+                        <option value="weakness">Weakness</option>
+                        <option value="worm infection">Worm Infection</option>
+                                </select>
+                            </div>
+
+                            <div id="prebookingComplaintGroup" style="display:none;">
+                                <select id="chiefComplaintPrebook" onchange="updateComplaintDetails()">
+                                    <option value="">-- Select Complaint --</option>
+                                    <option value="Event Call">Event Call</option>
+                                    <option value="Eye pain">Eye Pain</option>
+                                    <option value="Fall from Height">Fall from Height</option>
+                                    <option value="fever">Fever</option>
+                                    <option value="Fungal Infection">Fungal Infection</option>
+                                    <option value="Gastritis">Gastritis</option>
+                                    <option value="Giddiness/Fainting">Giddiness/Fainting</option>
+                                    <option value="Hazardous matter exposure">Hazardous Matter Exposure</option>
+                                    <option value="Headache">Headache</option>
+                                    <option value="head stroke">Head Stroke</option>
+                                    <option value="Hematemesis [vomiting blood]">Hematemesis [Vomiting Blood]</option>
+                                    <option value="Hypertension">Hypertension</option>
+                                    <option value="Joint Pain-Body Movement Difficulty">Joint Pain-Body Movement Difficulty</option>
+                                    <option value="Loosemotion-Vomiting">Loose Motion-Vomiting</option>
+                                    <option value="Low body temperature">Low Body Temperature</option>
+                                    <option value="Low sugar level">Low Sugar Level</option>
+                                    <option value="Mouth Ulcer/Infection">Mouth Ulcer/Infection</option>
+                                    <option value="numbness">Numbness</option>
+                                    <option value="Organ Transfer Call">Organ Transfer Call</option>
+                                    <option value="other">Other</option>
+                                    <option value="Overdose / poisoning">Overdose / Poisoning</option>
+                                    <option value="Pain in abdomen/stomach">Pain in Abdomen/Stomach</option>
+                                    <option value="Paralysis /stroke">Paralysis /Stroke</option>
+                                    <option value="Physiotherapthy">Physiotherapy</option>
+                                    <option value="Pregnancy - abdominal pain /labor pain">Pregnancy - Abdominal Pain /Labor Pain</option>
+                                    <option value="Pregnancy - baby delivered">Pregnancy - Baby Delivered</option>
+                                    <option value="Pregnancy - bleeding">Pregnancy - Bleeding</option>
+                                    <option value="Procedure">Procedure</option>
+                                    <option value="Psychiatric problems">Psychiatric Problems</option>
+                                    <option value="Review">Review</option>
+                                    <option value="RTA (Road Traffic Accident)">RTA (Road Traffic Accident)</option>
+                                    <option value="Sample Collection">Sample Collection</option>
+                                    <option value="Skin Infection">Skin Infection</option>
+                                    <option value="Suicide attempt">Suicide Attempt</option>
+                                    <option value="Surgery">Surgery</option>
+                                    <option value="throat infection">Throat Infection</option>
+                                    <option value="Toothache/ Dental Pain">Toothache/ Dental Pain</option>
+                                    <option value="Trauma - abdominal">Trauma - Abdominal</option>
+                                    <option value="Trauma - bleeding">Trauma - Bleeding</option>
+                                    <option value="Trauma - gun shot injury">Trauma - Gun Shot Injury</option>
+                                    <option value="Trauma - chest wall">Trauma - Chest Wall</option>
+                                    <option value="Trauma - head injury">Trauma - Head Injury</option>
+                                    <option value="Traumatic Injury">Traumatic Injury</option>
+                                    <option value="Unconscious/unresponsive patient">Unconscious/Unresponsive Patient</option>
+                                    <option value="urine problem">Urine Problem</option>
+                                    <option value="Vertigo">Vertigo</option>
+                                    <option value="vomiting">Vomiting</option>
+                                    <option value="weakness">Weakness</option>
+                                    <option value="worm infection">Worm Infection</option>
+                                </select>
+                            </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Associated Symptoms</label>
+                        <div class="symptom-grid" id="symptomsGrid">
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="symptoms" value="Chest pain">
+                                <label class="symptom-label">Chest Pain</label>
+                            </div>
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="symptoms" value="Shortness of breath">
+                                <label class="symptom-label">SOB</label>
+                            </div>
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="symptoms" value="Dizziness">
+                                <label class="symptom-label">Dizziness</label>
+                            </div>
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="symptoms" value="Nausea">
+                                <label class="symptom-label">Nausea</label>
+                            </div>
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="symptoms" value="Confusion">
+                                <label class="symptom-label">Confusion</label>
+                            </div>
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="symptoms" value="Pale/Clammy skin">
+                                <label class="symptom-label">Pale Skin</label>
+                            </div>
                         </div>
-                        <div class="symptom-checkbox">
-                            <input type="checkbox" name="symptoms" value="Shortness of breath">
-                            <label class="symptom-label">SOB</label>
-                        </div>
-                        <div class="symptom-checkbox">
-                            <input type="checkbox" name="symptoms" value="Dizziness">
-                            <label class="symptom-label">Dizziness</label>
-                        </div>
-                        <div class="symptom-checkbox">
-                            <input type="checkbox" name="symptoms" value="Nausea">
-                            <label class="symptom-label">Nausea</label>
-                        </div>
-                        <div class="symptom-checkbox">
-                            <input type="checkbox" name="symptoms" value="Confusion">
-                            <label class="symptom-label">Confusion</label>
-                        </div>
-                        <div class="symptom-checkbox">
-                            <input type="checkbox" name="symptoms" value="Pale/Clammy skin">
-                            <label class="symptom-label">Pale Skin</label>
-                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration of Complaint</label>
+                        <select id="duration">
+                            <option value="">-- Select Duration --</option>
+                            <option value="0-15 minutes">0-15 minutes (Acute)</option>
+                            <option value="15-60 minutes">15-60 minutes</option>
+                            <option value="1-6 hours">1-6 hours</option>
+                            <option value="6-24 hours">6-24 hours</option>
+                            <option value="More than 24 hours">More than 24 hours</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Duration of Complaint</label>
-                    <select id="duration">
-                        <option value="">-- Select Duration --</option>
-                        <option value="0-15 minutes">0-15 minutes (Acute)</option>
-                        <option value="15-60 minutes">15-60 minutes</option>
-                        <option value="1-6 hours">1-6 hours</option>
-                        <option value="6-24 hours">6-24 hours</option>
-                        <option value="More than 24 hours">More than 24 hours</option>
-                    </select>
+                    <label>Medical History</label>
+                    <textarea id="medicalHistory" placeholder="Known conditions, allergies, medications, previous surgeries..."></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label>Medical History</label>
-                    <textarea id="medicalHistory"
-                        placeholder="Known conditions, allergies, medications, previous surgeries..."></textarea>
+                <!-- Pre-booking Dispatch Options -->
+                <div id="dispatchOptionsGroup" style="display: none; background: #f0f4ff; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); margin-top: 15px;">
+                    <div class="form-group">
+                        <label class="required">Dispatch Option</label>
+                        <div style="display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-weight: 500; gap: 8px; flex: 1; min-width: 200px; padding: 10px; border: 2px solid var(--primary); border-radius: 6px; background: #f9f9ff; transition: all 0.2s;">
+                                <input type="radio" id="dispatchImmediate" name="dispatchOption" value="immediate" checked onchange="updateDispatchView()" style="cursor: pointer;">
+                                <span>⚡ Immediate Dispatch</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer; font-weight: 500; gap: 8px; flex: 1; min-width: 200px; padding: 10px; border: 2px solid var(--border); border-radius: 6px; transition: all 0.2s;">
+                                <input type="radio" id="dispatchSchedule" name="dispatchOption" value="schedule" onchange="updateDispatchView()" style="cursor: pointer;">
+                                <span>📅 Schedule Dispatch</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Dispatch Date & Time -->
+                    <div id="scheduleDetailsGroup" style="display: none; margin-top: 15px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="required">Dispatch Date</label>
+                                <input type="date" id="dispatchDate" min="" style="padding: 12px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Dispatch Time</label>
+                                <input type="time" id="dispatchTime" step="60" style="padding: 12px;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-row">
                     <button class="btn-secondary" onclick="previousSection()">← Back</button>
-                    <button class="btn-primary" onclick="nextSection(2)">Next →</button>
+                    <button class="btn-primary" type="button" onclick="advanceStep()">Next →</button>
                 </div>
+            </div>
             </div>
 
             <!-- Step 3: Review & Submit -->
@@ -790,12 +892,40 @@
                         <span class="result-value" id="summaryName">-</span>
                     </div>
                     <div class="result-item">
+                        <span class="result-label">Phone:</span>
+                        <span class="result-value" id="summaryPhone">-</span>
+                    </div>
+                    <div class="result-item">
                         <span class="result-label">Age / Gender:</span>
                         <span class="result-value" id="summaryAgeGender">-</span>
                     </div>
                     <div class="result-item">
+                        <span class="result-label">Location:</span>
+                        <span class="result-value" id="summaryLocation">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Call Type:</span>
+                        <span class="result-value" id="summaryCallType">-</span>
+                    </div>
+                    <div class="result-item">
                         <span class="result-label">Chief Complaint:</span>
                         <span class="result-value" id="summaryComplaint">-</span>
+                    </div>
+                    <div class="result-item" id="summaryDurationRow" style="display: none;">
+                        <span class="result-label">Duration:</span>
+                        <span class="result-value" id="summaryDuration">-</span>
+                    </div>
+                    <div class="result-item" id="summarySymptomsRow" style="display: none;">
+                        <span class="result-label">Symptoms:</span>
+                        <span class="result-value" id="summarySymptomsText">-</span>
+                    </div>
+                    <div class="result-item" id="summaryHistoryRow" style="display: none;">
+                        <span class="result-label">Medical History:</span>
+                        <span class="result-value" id="summaryHistory">-</span>
+                    </div>
+                    <div class="result-item" id="summaryDispatchRow" style="display: none;">
+                        <span class="result-label">Dispatch:</span>
+                        <span class="result-value" id="summaryDispatch">-</span>
                     </div>
                 </div>
 
@@ -823,9 +953,10 @@
                 <div class="spinner"></div>
                 <p>Processing assessment...</p>
             </div>
+        </div>
 
-            <!-- Results Display -->
-            <div class="results" id="results">
+        <!-- Results Display -->
+        <div class="results" id="results">
                 <div class="result-icon" id="resultIcon">✓</div>
                 <div class="result-title" id="resultTitle">Assessment Complete</div>
                 <div class="result-details">
@@ -861,604 +992,314 @@
     </div>
 
     <script>
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            document.getElementById("submitBtn").addEventListener("click", () => {
-                // Validate we're on final step
-                if (currentStep < totalSteps) {
-                    nextSection(currentStep);
-                    return;
-                }
-
-                // Call submitAssessment - it will handle success popup display
-                submitAssessment();
-
-            });
-        });
-
-    </script>
-
-    <script>
-        let currentStep = 1;
+        // Single minimal script block: guarded, no duplicate definitions
+        window.currentStep = 1;
         const totalSteps = 3;
         let currentLanguage = 'en';
-
-        // Marathi translations for labels
-        const translations = {
-            'en': {
-                'headerSubtitle': 'Rapid triage system for emergency dispatch',
-                'step_1_title': 'Step 1: Patient Information',
-                'step_2_title': 'Step 2: Chief Complaint & Symptoms',
-                'step_3_title': 'Step 3: Review & Submit',
-                'patientName': 'Patient Name',
-                'patientAge': 'Age',
-                'patientGender': 'Gender',
-                'callerPhone': 'Phone Number',
-                'location': 'Address',
-                'chief_complaint': 'Chief Complaint',
-                'symptoms': 'Select all that apply',
-                'medicalHistory': 'Medical History',
-                'symptomDuration': 'How long have symptoms been present?',
-                'nextBtn': 'Next',
-                'backBtn': 'Back',
-                'submitBtn': 'Submit & Dispatch',
-                'reviewSummary': 'Review Summary'
-            },
-            'mr': {
-                'headerSubtitle': 'आपत्कालीन डिस्पॅच साठी द्रुत वर्गीकरण प्रणाली',
-                'step_1_title': 'पद्धति 1: रोगीची माहिती',
-                'step_2_title': 'पद्धति 2: मुख्य तक्रार व लक्षणे',
-                'step_3_title': 'पद्धति 3: पुनरावलोकन व सादर करा',
-                'patientName': 'रोगीचे नाव',
-                'patientAge': 'वय',
-                'patientGender': 'लिंग',
-                'callerPhone': 'फोन नंबर',
-                'location': 'पत्ता',
-                'chief_complaint': 'मुख्य तक्रार',
-                'symptoms': 'सर्व लागू असणारे निवडा',
-                'medicalHistory': 'वैद्यकीय इतिहास',
-                'symptomDuration': 'लक्षणे किती काळ आहे?',
-                'nextBtn': 'पुढे',
-                'backBtn': 'मागे',
-                'submitBtn': 'सादर करा व डिस्पॅच करा',
-                'reviewSummary': 'सारांश पुनरावलोकन'
-            },
-            'ta': {
-                'headerSubtitle': 'Emergency dispatch system',
-                'step_1_title': 'படி 1: நோயாளி தகவல்',
-                'step_2_title': 'படி 2: மூல நோக்கம் & அறிகுறிகள்',
-                'step_3_title': 'படி 3: மறுஆய்வு & சமர்ப்பிக்கவும்',
-                'patientName': 'நோயாளியின் பெயர்',
-                'patientAge': 'வயது',
-                'patientGender': 'பாலினம்',
-                'callerPhone': 'தொலைபேசி எண்',
-                'location': 'முகவரி',
-                'chief_complaint': 'மூல நோக்கம்',
-                'symptoms': 'பொருந்தக்கூடியவற்றை தேர்ந்தெடுக்கவும்',
-                'medicalHistory': 'மருத்துவ வரலாறு',
-                'symptomDuration': 'அறிகுறிகள் எவ்வளவு காலம் உள்ளன?',
-                'nextBtn': 'அடுத்தது',
-                'backBtn': 'பின்னே',
-                'submitBtn': 'சமர்ப்பிக்கவும் & விநியோகிக்கவும்',
-                'reviewSummary': 'சுருக்கம் மறுபரிசீலனை'
-            },
-            'kn': {
-                'headerSubtitle': 'Emergency dispatch system',
-                'step_1_title': 'ಹಂತ 1: ರೋಗಿ ಮಾಹಿತಿ',
-                'step_2_title': 'ಹಂತ 2: ಮುಖ್ಯ ಆರೋಪ & ರೋಗ ಲಕ್ಷಣಗಳು',
-                'step_3_title': 'ಹಂತ 3: ಪರಿಶೀಲನೆ & ಸಲ್ಲಿಸು',
-                'patientName': 'ರೋಗಿಯ ಹೆಸರು',
-                'patientAge': 'ವಯಸ್ಸು',
-                'patientGender': 'ಪ್ರವೃತ್ತಿ',
-                'callerPhone': 'ಫೋನ್ ಸಂಖ್ಯೆ',
-                'location': 'ವಿಳಾಸ',
-                'chief_complaint': 'ಮುಖ್ಯ ಆರೋಪ',
-                'symptoms': 'ಅನ್ವಯವಾಗುವ ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆ ಮಾಡಿ',
-                'medicalHistory': 'ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ',
-                'symptomDuration': 'ರೋಗ ಲಕ್ಷಣಗಳು ಎಷ್ಟು ಕಾಲ ಇದೆ?',
-                'nextBtn': 'ಮುಂದೆ',
-                'backBtn': 'ಹಿಂದೆ',
-                'submitBtn': 'ಸಲ್ಲಿಸು & ವಿತರಣೆ ಮಾಡು',
-                'reviewSummary': 'ಸಾರಾಂಶ ಪರಿಶೀಲನೆ'
-            }
-        };
-
-        // ============================================================================
-        // GEOLOCATION & COORDINATES STORAGE
-        // ============================================================================
         let geoCoordinates = { lat: null, lon: null };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCallTypeView();
+            updateDispatchView();
+            updateStepIndicator();
+            updateProgress();
+
+            const today = new Date().toISOString().split('T')[0];
+            const dispatchDateInput = document.getElementById('dispatchDate');
+            if (dispatchDateInput) dispatchDateInput.setAttribute('min', today);
+
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) submitBtn.addEventListener('click', () => {
+                if (window.currentStep < totalSteps) { nextSection(window.currentStep); return; }
+                submitAssessment();
+            });
+        });
 
         function fetchGeolocation() {
             const btn = document.getElementById('geoLocBtn');
             const status = document.getElementById('geoStatus');
             const coords = document.getElementById('geoCoords');
-
-            btn.disabled = true;
-            btn.textContent = '⏳ Locating...';
-            status.textContent = '';
-            coords.textContent = '';
-
-            // Use IP-based geolocation (works on HTTP and HTTPS, no permissions needed)
-            fetch('https://ipapi.co/json/')
-                .then(response => response.json())
-                .then(data => {
-                    const lat = parseFloat(data.latitude).toFixed(6);
-                    const lon = parseFloat(data.longitude).toFixed(6);
-                    geoCoordinates = { lat, lon };
-
-                    status.textContent = `✓ Location detected (${data.city}, ${data.region})`;
-                    status.style.color = '#5cb85c';
-                    coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
-                    btn.disabled = false;
-                    btn.textContent = '📍 Auto-Locate (✓)';
-                })
-                .catch(error => {
-                    console.error('Geolocation error:', error);
-                    status.textContent = 'Could not detect location. Please enter address manually.';
-                    status.style.color = '#d9534f';
-                    coords.textContent = '';
-                    btn.disabled = false;
-                    btn.textContent = '📍 Auto-Locate';
-                });
+            const locationInput = document.getElementById('location');
+            if (btn) btn.disabled = true;
+            if (status) status.textContent = '';
+            if (coords) coords.textContent = '';
+            fetch('https://ipapi.co/json/').then(r => r.json()).then(data => {
+                const lat = parseFloat(data.latitude).toFixed(6);
+                const lon = parseFloat(data.longitude).toFixed(6);
+                geoCoordinates = { lat, lon };
+                const locationStr = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
+                if (locationInput) locationInput.value = locationStr;
+                if (status) { status.textContent = `✓ Location detected (${data.city || ''}, ${data.region || ''})`; status.style.color = '#5cb85c'; }
+                if (coords) coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
+                if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate (✓)'; }
+            }).catch(() => { if (status) { status.textContent = 'Could not detect location. Please enter address manually.'; status.style.color = '#d9534f'; } if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate'; } });
         }
 
-        // ============================================================================
-        // AGE UNIT CONVERSION (Years <-> Months)
-        // ============================================================================
         function getAgeInMonths() {
             const ageInput = document.getElementById('patientAge');
+            const ageUnitSelect = document.getElementById('patientAgeUnit');
             const ageValue = ageInput ? (parseFloat(ageInput.value) || 0) : 0;
-            const ageUnitSelect = document.getElementById('patientAgeUnit');
             const ageUnit = ageUnitSelect ? ageUnitSelect.value : 'years';
-
-            switch (ageUnit) {
-                case 'years':
-                    return ageValue * 12;
-                case 'months':
-                    return ageValue;
-                case 'days':
-                    return ageValue / 30;  // Approximate: 30 days per month
-                default:
-                    return ageValue * 12;  // Default to years
-            }
-        }
-
-        function getAgeDisplayText() {
-            const ageInput = document.getElementById('patientAge');
-            const ageUnitSelect = document.getElementById('patientAgeUnit');
-
-            // Make sure elements exist
-            if (!ageInput || !ageUnitSelect) {
-                console.warn('Age input or unit select element not found');
-                return '-';
-            }
-
-            const rawValue = ageInput.value.trim();
-            const ageValue = parseFloat(rawValue);
-            const ageUnit = ageUnitSelect.value || 'years';
-
-            console.log('Age Display - Raw Value:', rawValue, 'Parsed:', ageValue, 'Unit:', ageUnit, 'Valid:', !isNaN(ageValue) && ageValue > 0);
-
-            // Check if we have a valid age value
-            if (isNaN(ageValue) || ageValue === 0 || rawValue === '') {
-                return '-';
-            }
-
-            // Convert to human-readable format (years, months, days)
-            const totalMonths = getAgeInMonths();
-            const years = Math.floor(totalMonths / 12);
-            const months = Math.floor(totalMonths % 12);
-
-            if (years > 0 && months > 0) {
-                return `${years} years ${months} months`;
-            } else if (years > 0) {
-                return `${years} year${years > 1 ? 's' : ''}`;
-            } else if (months > 0) {
-                return `${months} month${months > 1 ? 's' : ''}`;
-            } else if (ageValue > 0) {
-                return `${ageValue} ${ageUnit}`;
-            }
-
-            return '-';
-        }
-
-        function switchLanguage(lang) {
-            currentLanguage = lang;
-
-            // Update button styling
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Update UI text
-            document.getElementById('headerSubtitle').textContent = translations[lang]['headerSubtitle'];
-
-            // Update form labels
-            const labels = {
-                'step1-label': 'step_1_title',
-                'step2-label': 'step_2_title',
-                'step3-label': 'step_3_title',
-            };
-
-            for (let id in labels) {
-                const elem = document.getElementById(id);
-                if (elem) {
-                    elem.textContent = translations[lang][labels[id]];
-                }
-            }
-
-            // Update placeholders and labels
-            const inputs = {
-                'patientName': 'patientName',
-                'patientAge': 'patientAge',
-                'gender': 'patientGender',
-                'callerPhone': 'callerPhone',
-                'location': 'location',
-                'chiefComplaint': 'chief_complaint',
-                'medicalHistory': 'medicalHistory',
-            };
-
-            for (let inputId in inputs) {
-                const input = document.getElementById(inputId);
-                if (input) {
-                    const labelKey = inputs[inputId];
-                    const label = input.previousElementSibling;
-                    if (label && label.tagName === 'LABEL') {
-                        label.textContent = translations[lang][labelKey];
-                    }
-                }
-            }
-
-            console.log('Language switched to:', lang);
-        }
-
-        // Initialize pain level display
-        document.getElementById('painLevel').addEventListener('input', (e) => {
-            document.getElementById('painValue').textContent = e.target.value;
-        });
-
-        function nextSection(step) {
-            if (validateStep(step)) {
-                currentStep++;
-                updateStepIndicator();
-                updateProgress();
-
-                // Populate summary when moving to step 3
-                if (currentStep === 3) {
-                    updateSummary();
-                }
-            }
-        }
-
-        function previousSection() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateStepIndicator();
-                updateProgress();
-            }
-        }
-
-        function updateStepIndicator() {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(`step${currentStep}`).classList.add('active');
-
-            document.querySelectorAll('.step').forEach((s, i) => {
-                if (i + 1 <= currentStep) {
-                    s.classList.add('active');
-                } else {
-                    s.classList.remove('active');
-                }
-            });
-        }
-
-        function updateProgress() {
-            const progress = (currentStep / totalSteps) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
+            if (ageUnit === 'years') return ageValue * 12;
+            if (ageUnit === 'months') return ageValue;
+            if (ageUnit === 'days') return ageValue / 30;
+            return ageValue * 12;
         }
 
         function validateAgeInput() {
-            const ageInput = document.getElementById('patientAge');
-            let age = parseFloat(ageInput.value);
-            const ageUnit = document.getElementById('patientAgeUnit').value;
+            const ageInput = document.getElementById('patientAge'); if (!ageInput) return;
+            let age = parseFloat(ageInput.value) || 0; const ageUnit = document.getElementById('patientAgeUnit')?.value || 'years';
+            let ageInYears = age; if (ageUnit === 'months') ageInYears = age / 12; if (ageUnit === 'days') ageInYears = age / 365;
+            if (ageInYears > 150) { ageInput.value = ''; showError('Age cannot exceed 150 years'); }
+            if (age < 0) ageInput.value = 0;
+        }
 
-            // Convert to years for validation
-            let ageInYears = age;
-            if (ageUnit === 'months') ageInYears = age / 12;
-            if (ageUnit === 'days') ageInYears = age / 365;
+        function validatePhoneNumber(phone) { const clean = (phone || '').replace(/\D/g, ''); return clean.length === 10 && /^[0-9]{10}$/.test(clean); }
+        function validatePatientName(name) { return /^[a-zA-Z\s\-]+$/.test(name) && name.trim().length > 0; }
 
-            if (ageInYears > 150) {
-                ageInput.value = '';
-                alert('Age cannot exceed 150 years');
+        function advanceStep() { if (validateStep(window.currentStep) && window.currentStep < totalSteps) { window.currentStep++; updateStepIndicator(); updateProgress(); if (window.currentStep === 3) updateSummary(); } }
+        function nextSection(step) { advanceStep(); }
+        function previousSection() { if (window.currentStep > 1) { window.currentStep--; updateStepIndicator(); updateProgress(); } }
+
+        function updateStepIndicator() { 
+            // Remove active from ALL sections
+            const sections = document.querySelectorAll('.section');
+            for (let i = 0; i < sections.length; i++) {
+                sections[i].classList.remove('active');
             }
-            if (age < 0) {
-                ageInput.value = 0;
+            
+            // Add active to current step
+            const currentStepEl = document.getElementById('step' + window.currentStep);
+            if (currentStepEl) {
+                currentStepEl.classList.add('active');
+                // Force layout recalculation
+                void currentStepEl.offsetHeight;
+            }
+            
+            // Update step indicators
+            const stepIndicators = document.querySelectorAll('.step');
+            for (let i = 0; i < stepIndicators.length; i++) {
+                if (i + 1 <= window.currentStep) {
+                    stepIndicators[i].classList.add('active');
+                } else {
+                    stepIndicators[i].classList.remove('active');
+                }
             }
         }
-
-        function validatePhoneNumber(phone) {
-            // Remove any non-digit characters
-            const cleanPhone = phone.replace(/\D/g, '');
-            // Check if it's exactly 10 digits
-            return cleanPhone.length === 10 && /^[0-9]{10}$/.test(cleanPhone);
-        }
-
-        function validatePatientName(name) {
-            // Only allow letters, spaces, and hyphens
-            return /^[a-zA-Z\s\-]+$/.test(name) && name.trim().length > 0;
-        }
+        function updateProgress() { const pf = document.getElementById('progressFill'); if (pf) pf.style.width = ((window.currentStep/totalSteps)*100) + '%'; }
 
         function validateStep(step) {
             const errors = [];
-
+            const firstInvalid = { el: null };
             if (step === 1) {
-                const name = document.getElementById('patientName').value.trim();
-                if (!name) errors.push('Patient name required');
-                if (name && !validatePatientName(name)) errors.push('Patient name can only contain letters, spaces, and hyphens (no numbers or special characters)');
-
-                const ageValue = parseFloat(document.getElementById('patientAge').value);
-                if (!document.getElementById('patientAge').value) errors.push('Age required');
-
-                // Convert age to years based on selected unit
-                const ageUnit = document.getElementById('patientAgeUnit').value;
-                let ageInYears = ageValue;
-                if (ageUnit === 'months') ageInYears = ageValue / 12;
-                if (ageUnit === 'days') ageInYears = ageValue / 365;
-
-                if (ageInYears > 150) errors.push('Age cannot exceed 150 years');
-                if (ageInYears < 0) errors.push('Age cannot be negative');
-
-                const phone = document.getElementById('callerPhone').value.trim();
-                if (!phone) errors.push('Phone number required');
-                if (phone && !validatePhoneNumber(phone)) errors.push('Phone must be exactly 10 digits (0-9 only)');
-
-                if (!document.getElementById('location').value.trim()) errors.push('Location required');
+                const nameEl = document.getElementById('patientName'); const name = nameEl?.value?.trim(); if (!name) { errors.push('Patient name required'); if (!firstInvalid.el) firstInvalid.el = nameEl; } else if (!validatePatientName(name)) { errors.push('Patient name can only contain letters, spaces, and hyphens'); if (!firstInvalid.el) firstInvalid.el = nameEl; }
+                const ageEl = document.getElementById('patientAge'); const ageVal = ageEl?.value; if (!ageVal) { errors.push('Age required'); if (!firstInvalid.el) firstInvalid.el = ageEl; }
+                const phoneEl = document.getElementById('callerPhone'); const phone = phoneEl?.value?.trim(); if (!phone) { errors.push('Phone number required'); if (!firstInvalid.el) firstInvalid.el = phoneEl; } else if (!validatePhoneNumber(phone)) { errors.push('Phone must be exactly 10 digits (0-9 only)'); if (!firstInvalid.el) firstInvalid.el = phoneEl; }
+                const locEl = document.getElementById('location'); const location = locEl?.value?.trim(); if (!location) { errors.push('Location required'); if (!firstInvalid.el) firstInvalid.el = locEl; }
             } else if (step === 2) {
-                if (!document.getElementById('chiefComplaint').value) errors.push('Chief complaint required');
+                const callType = document.querySelector('input[name="callType"]:checked')?.value; if (!callType) { errors.push('Call type required'); }
+                let complaint = '';
+                if (callType === 'emergency') { const el = document.getElementById('chiefComplaintEmergency'); complaint = el?.value || ''; if (!complaint && !firstInvalid.el) firstInvalid.el = el; }
+                else if (callType === 'pre-booking') { const el = document.getElementById('chiefComplaintPrebook'); complaint = el?.value || ''; const dispatchOption = document.querySelector('input[name="dispatchOption"]:checked')?.value; if (!dispatchOption) { errors.push('Dispatch option required'); if (!firstInvalid.el) firstInvalid.el = document.getElementById('dispatchImmediate') || document.getElementById('dispatchSchedule'); } if (dispatchOption === 'schedule') { const d = document.getElementById('dispatchDate')?.value; const t = document.getElementById('dispatchTime')?.value; if (!d) { errors.push('Dispatch date required'); if (!firstInvalid.el) firstInvalid.el = document.getElementById('dispatchDate'); } if (!t) { errors.push('Dispatch time required'); if (!firstInvalid.el) firstInvalid.el = document.getElementById('dispatchTime'); } } }
+                if (!complaint) errors.push('Chief complaint required');
             }
-
-            if (errors.length > 0) {
-                alert(errors.join('\n'));
-                return false;
-            }
+            const errorBox = document.getElementById('errorBox');
+            if (errors.length) { showError(errors.join('; ')); if (firstInvalid.el) { try { firstInvalid.el.focus(); } catch(e) {} } return false; }
+            if (errorBox) errorBox.style.display = 'none';
             return true;
         }
 
-        function updateComplaintDetails() {
-            const complaint = document.getElementById('chiefComplaint').value;
-            checkEmergency(complaint);
+        function updateCallTypeView() {
+            const callType = document.querySelector('input[name="callType"]:checked')?.value;
+            const emergencyGroup = document.getElementById('emergencyComplaintGroup');
+            const prebookGroup = document.getElementById('prebookingComplaintGroup');
+            const dispatchGroup = document.getElementById('dispatchOptionsGroup');
+            
+            // Update visual state for call type radios
+            const emergencyLabel = document.querySelector('label:has(#callTypeEmergency)');
+            const prebookLabel = document.querySelector('label:has(#callTypePrebook)');
+            
+            if (callType === 'emergency') {
+                if (emergencyLabel) { emergencyLabel.style.borderColor = 'var(--primary)'; emergencyLabel.style.background = '#f9f9ff'; }
+                if (prebookLabel) { prebookLabel.style.borderColor = 'var(--border)'; prebookLabel.style.background = 'white'; }
+                if (emergencyGroup) emergencyGroup.style.display = 'block';
+                if (prebookGroup) prebookGroup.style.display = 'none';
+                if (dispatchGroup) dispatchGroup.style.display = 'none';
+            } else {
+                if (emergencyLabel) { emergencyLabel.style.borderColor = 'var(--border)'; emergencyLabel.style.background = 'white'; }
+                if (prebookLabel) { prebookLabel.style.borderColor = 'var(--primary)'; prebookLabel.style.background = '#f9f9ff'; }
+                if (emergencyGroup) emergencyGroup.style.display = 'none';
+                if (prebookGroup) prebookGroup.style.display = 'block';
+                if (dispatchGroup) dispatchGroup.style.display = 'block';
+            }
         }
 
-        function checkEmergency(complaint) {
-            const emergencies = [
-                'Chest pain', 'Breathing Difficulty', 'Unconscious',
-                'Severe Bleeding', 'Trauma', 'Seizure', 'Poisoning'
-            ];
+        function updateDispatchView() { 
+            const dispatchOption = document.querySelector('input[name="dispatchOption"]:checked')?.value; 
+            const scheduleDetails = document.getElementById('scheduleDetailsGroup');
+            const immediateLabel = document.querySelector('label:has(#dispatchImmediate)');
+            const scheduleLabel = document.querySelector('label:has(#dispatchSchedule)');
+            
+            if (dispatchOption === 'schedule') { 
+                if (scheduleDetails) scheduleDetails.style.display = 'block'; 
+                if (scheduleLabel) { scheduleLabel.style.borderColor = 'var(--primary)'; scheduleLabel.style.background = '#f9f9ff'; }
+                if (immediateLabel) { immediateLabel.style.borderColor = 'var(--border)'; immediateLabel.style.background = 'white'; }
+                const today = new Date().toISOString().split('T')[0]; 
+                const di = document.getElementById('dispatchDate'); 
+                if (di) di.setAttribute('min', today); 
+            } else { 
+                if (scheduleDetails) scheduleDetails.style.display = 'none';
+                if (immediateLabel) { immediateLabel.style.borderColor = 'var(--primary)'; immediateLabel.style.background = '#f9f9ff'; }
+                if (scheduleLabel) { scheduleLabel.style.borderColor = 'var(--border)'; scheduleLabel.style.background = 'white'; }
+            } 
+        }
 
-            const alert = document.getElementById('emergencyAlert');
-            if (emergencies.some(e => complaint.includes(e))) {
-                alert.textContent = '🚨 IMMEDIATE EMERGENCY - Please wait while we review your case.';
-                alert.classList.add('show');
-            } else {
-                alert.classList.remove('show');
+        function updateComplaintDetails() { const callType = document.querySelector('input[name="callType"]:checked')?.value; let complaint = ''; if (callType === 'emergency') complaint = document.getElementById('chiefComplaintEmergency')?.value || ''; else complaint = document.getElementById('chiefComplaintPrebook')?.value || ''; checkEmergency(complaint); }
+
+        function checkEmergency(complaint) { const emergencies = ['Chest pain','Breathing Difficulty','Unconscious','Severe Bleeding','Trauma','Seizure','Poisoning']; const alertEl = document.getElementById('emergencyAlert'); if (!alertEl) return; if (complaint && emergencies.some(e => complaint.includes(e))) { alertEl.textContent = '🚨 IMMEDIATE EMERGENCY - Please wait while we review your case.'; alertEl.classList.add('show'); } else { alertEl.classList.remove('show'); } }
+
+        // Ensure time strings are formatted as 24-hour HH:MM
+        function formatTo24Hour(timeStr) {
+            if (!timeStr) return '';
+            // If already HH:MM or HH:MM:SS, extract HH:MM
+            const hhmm = timeStr.split(':');
+            if (hhmm.length >= 2 && /^\d{1,2}$/.test(hhmm[0]) && /^\d{2}$/.test(hhmm[1])) {
+                const hh = hhmm[0].padStart(2, '0');
+                const mm = hhmm[1].padStart(2, '0');
+                return `${hh}:${mm}`;
             }
+            // Handle 12-hour like '3:15 PM' or '03:15AM'
+            const m = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?/);
+            if (!m) return timeStr;
+            let hour = parseInt(m[1], 10);
+            const minute = m[2];
+            const ampm = (m[3] || '').toUpperCase();
+            if (ampm === 'PM' && hour !== 12) hour += 12;
+            if (ampm === 'AM' && hour === 12) hour = 0;
+            return `${String(hour).padStart(2, '0')}:${minute}`;
         }
 
         function updateSummary() {
-            document.getElementById('summaryName').textContent = document.getElementById('patientName').value || '-';
-
-            // Get age - read directly from form fields by ID
+            document.getElementById('summaryName').textContent = document.getElementById('patientName')?.value || '-';
+            document.getElementById('summaryPhone').textContent = document.getElementById('callerPhone')?.value || '-';
+            document.getElementById('summaryLocation').textContent = document.getElementById('location')?.value || '-';
             const ageInput = document.getElementById('patientAge');
             const ageUnitInput = document.getElementById('patientAgeUnit');
-
             let ageDisplay = '-';
             if (ageInput && ageUnitInput) {
-                const ageValue = parseFloat(ageInput.value) || 0;
-                if (ageValue > 0) {
-                    const ageUnit = ageUnitInput.value;
-                    // Convert to display format
-                    if (ageUnit === 'years') {
-                        ageDisplay = `${Math.floor(ageValue)} years 0 months`;
-                    } else if (ageUnit === 'months') {
-                        const years = Math.floor(ageValue / 12);
-                        const months = Math.floor(ageValue % 12);
-                        ageDisplay = `${years} years ${months} months`;
-                    } else if (ageUnit === 'days') {
-                        const totalMonths = Math.floor(ageValue / 30);
-                        const years = Math.floor(totalMonths / 12);
-                        const months = Math.floor(totalMonths % 12);
-                        ageDisplay = `${years} years ${months} months`;
-                    }
+                const av = parseFloat(ageInput.value) || 0;
+                if (av > 0) {
+                    const unit = ageUnitInput.value;
+                    if (unit === 'years') ageDisplay = `${Math.floor(av)} years 0 months`;
+                    else if (unit === 'months') { const y = Math.floor(av/12); const m = Math.floor(av%12); ageDisplay = `${y} years ${m} months`; }
+                    else if (unit === 'days') { const totalMonths = Math.floor(av/30); const y = Math.floor(totalMonths/12); const m = Math.floor(totalMonths%12); ageDisplay = `${y} years ${m} months`; }
                 }
             }
-
-            const gender = document.getElementById('gender').value;
+            const gender = document.getElementById('gender')?.value;
             document.getElementById('summaryAgeGender').textContent = `${ageDisplay} / ${gender || 'Not specified'}`;
-            document.getElementById('summaryComplaint').textContent = document.getElementById('chiefComplaint').value || '-';
-
-            const complaint = document.getElementById('chiefComplaint').value;
-            const emergencies = ['Chest pain', 'Breathing Difficulty', 'Unconscious', 'Severe Bleeding', 'Trauma', 'Seizure', 'Poisoning'];
-            const finalAlert = document.getElementById('emergencyFinal');
-            if (emergencies.some(e => complaint.includes(e))) {
-                finalAlert.style.display = 'block';
-            } else {
-                finalAlert.style.display = 'none';
-            }
+            const callType = document.querySelector('input[name="callType"]:checked')?.value;
+            document.getElementById('summaryCallType').textContent = callType === 'emergency' ? '🚨 Emergency Call' : '📅 Pre-booking Call';
+            let complaint = '-';
+            if (callType === 'emergency') complaint = document.getElementById('chiefComplaintEmergency')?.value || '-';
+            else complaint = document.getElementById('chiefComplaintPrebook')?.value || '-';
+            document.getElementById('summaryComplaint').textContent = complaint;
+            const duration = document.getElementById('duration')?.value || '';
+            const durationRow = document.getElementById('summaryDurationRow');
+            if (duration) { if (durationRow) durationRow.style.display = 'block'; document.getElementById('summaryDuration').textContent = duration; } else if (durationRow) durationRow.style.display = 'none';
+            const symptoms = Array.from(document.querySelectorAll('input[name="symptoms"]:checked')).map(s => s.value).join(', ') || '';
+            const symptomsRow = document.getElementById('summarySymptomsRow');
+            if (symptoms) { if (symptomsRow) symptomsRow.style.display = 'block'; document.getElementById('summarySymptomsText').textContent = symptoms; } else if (symptomsRow) symptomsRow.style.display = 'none';
+            const history = document.getElementById('medicalHistory')?.value || '';
+            const historyRow = document.getElementById('summaryHistoryRow');
+            if (history) { if (historyRow) historyRow.style.display = 'block'; document.getElementById('summaryHistory').textContent = history; } else if (historyRow) historyRow.style.display = 'none';
+            const dispatchRow = document.getElementById('summaryDispatchRow');
+            if (callType === 'pre-booking') {
+                const dispatchOption = document.querySelector('input[name="dispatchOption"]:checked')?.value;
+                let dispatchText = '-';
+                if (dispatchOption === 'immediate') dispatchText = '⚡ Immediate Dispatch';
+                else if (dispatchOption === 'schedule') {
+                    const d = document.getElementById('dispatchDate')?.value;
+                    const t = formatTo24Hour(document.getElementById('dispatchTime')?.value);
+                    dispatchText = `📅 ${d || '-'} @ ${t || '-'}`;
+                }
+                if (dispatchRow) { dispatchRow.style.display = 'block'; document.getElementById('summaryDispatch').textContent = dispatchText; }
+            } else if (dispatchRow) dispatchRow.style.display = 'none';
         }
-
-        // function submitAssessment() {
-        //     updateSummary();
-
-        //     // If not on final step, go to next step
-        //     if (currentStep < totalSteps) {
-        //         nextSection(currentStep);
-        //         updateSummary();
-        //         return;
-        //     }
-
-        //     showLoading(true);
-
-        //     // Convert age to years and months for storage
-        //     const ageValue = parseFloat(document.getElementById('patientAge').value) || 0;
-        //     const ageUnit = document.getElementById('patientAgeUnit').value;
-        //     const totalMonths = getAgeInMonths();
-        //     const ageYears = Math.floor(totalMonths / 12);
-        //     const ageMonths = Math.floor(totalMonths % 12);
-
-        //     const assessmentData = {
-        //         patientName: document.getElementById('patientName').value,
-        //         mobileNo: document.getElementById('callerPhone').value,
-        //         incAddress: document.getElementById('location').value,
-        //         incLat: geoCoordinates.lat ? parseFloat(geoCoordinates.lat) : null,
-        //         incLong: geoCoordinates.lon ? parseFloat(geoCoordinates.lon) : null,
-        //         patientAge: ageValue,  // Raw age value
-        //         patientAgeUnit: ageUnit,  // Unit (years, months, days)
-        //         patientGender: document.getElementById('gender').value,
-        //         chiefComplaint: document.getElementById('chiefComplaint').value,
-        //         medicalHistory: document.getElementById('medicalHistory').value,
-        //         language: currentLanguage,
-        //         patientKnown: true,
-        //         isUnidentified: false,
-        //         durationChiefComplaint: document.getElementById('duration').value
-        //     };
-
-        //     console.log('Submitting assessment:', assessmentData);
-
-        //     fetch('/submit_assessment', {
-        //         method: 'POST',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify(assessmentData)
-        //     })
-        //     .then(response => {
-        //         console.log('Response status:', response.status);
-        //         return response.json();
-        //     })
-        //     .then(result => {
-        //         console.log('Result:', result);
-        //         showLoading(false);
-        //         displayResults(result);
-        //     })
-        //     .catch(error => {
-        //         console.error('Error:', error);
-        //         showLoading(false);
-        //         alert('Error: ' + error.message);
-        //     });
-        // }
 
         function submitAssessment() {
             updateSummary();
-
-            if (currentStep < totalSteps) {
-                nextSection(currentStep);
-                updateSummary();
-                return;
-            }
-
+            if (window.currentStep < totalSteps) { nextSection(window.currentStep); updateSummary(); return; }
             showLoading(true);
-
-            const ageValue = parseFloat(document.getElementById('patientAge').value) || 0;
-            const ageUnit = document.getElementById('patientAgeUnit').value;
-            const totalMonths = getAgeInMonths();
-            const ageYears = Math.floor(totalMonths / 12);
-            const ageMonths = Math.floor(totalMonths % 12);
-
+            const ageValue = parseFloat(document.getElementById('patientAge')?.value) || 0;
+            const ageUnit = document.getElementById('patientAgeUnit')?.value || 'years';
+            const callType = document.querySelector('input[name="callType"]:checked')?.value || 'emergency';
+            let chiefComplaint = '';
+            if (callType === 'emergency') chiefComplaint = document.getElementById('chiefComplaintEmergency')?.value || '';
+            else chiefComplaint = document.getElementById('chiefComplaintPrebook')?.value || '';
+            let dispatchInfo = {};
+            if (callType === 'pre-booking') {
+                const dispatchOption = document.querySelector('input[name="dispatchOption"]:checked')?.value || 'immediate';
+                dispatchInfo = {
+                    dispatchType: dispatchOption,
+                    dispatchDate: dispatchOption === 'schedule' ? document.getElementById('dispatchDate')?.value : null,
+                    dispatchTime: dispatchOption === 'schedule' ? formatTo24Hour(document.getElementById('dispatchTime')?.value) : null
+                };
+            }
             const assessmentData = {
-                patientName: document.getElementById('patientName').value,
-                mobileNo: document.getElementById('callerPhone').value,
-                incAddress: document.getElementById('location').value,
+                patientName: document.getElementById('patientName')?.value,
+                mobileNo: document.getElementById('callerPhone')?.value,
+                incAddress: document.getElementById('location')?.value,
                 incLat: geoCoordinates.lat ? parseFloat(geoCoordinates.lat) : null,
                 incLong: geoCoordinates.lon ? parseFloat(geoCoordinates.lon) : null,
                 patientAge: ageValue,
                 patientAgeUnit: ageUnit,
-                patientGender: document.getElementById('gender').value,
-                chiefComplaint: document.getElementById('chiefComplaint').value,
-                medicalHistory: document.getElementById('medicalHistory').value,
+                patientGender: document.getElementById('gender')?.value,
+                chiefComplaint: chiefComplaint,
+                medicalHistory: document.getElementById('medicalHistory')?.value,
                 language: currentLanguage,
                 patientKnown: true,
                 isUnidentified: false,
-                durationChiefComplaint: document.getElementById('duration').value
+                durationChiefComplaint: document.getElementById('duration')?.value,
+                callType: callType,
+                ...dispatchInfo
             };
-
-            console.log('Submitting assessment:', assessmentData);
-
-            const api1 = fetch('/submit_assessment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(assessmentData)
-            });
-
-            const api2 = fetch('https://apolloems.in/api/getIncAiData', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(assessmentData)
-            });
-
-            Promise.all([api1, api2])
-                .then(async ([res1, res2]) => {
-                    console.log('API1 status:', res1.status);
-                    console.log('API2 status:', res2.status);
-
-                    const result1 = await res1.json();
-                    const result2 = await res2.json();
-
-                    console.log('API1 result:', result1);
-                    console.log('API2 result:', result2);
-
-                    showLoading(false);
-
-                    // You can merge or choose one result
-                    displayResults({
-                        primary: result1,
-                        aiData: result2
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showLoading(false);
-                    alert('Error: ' + error.message);
-                });
+            fetch('/submit_assessment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(assessmentData) })
+                .then(r => r.json()).then(result => { showLoading(false); displayResults(result); })
+                .catch(err => { showLoading(false); alert('Error: ' + (err.message || err)); });
         }
 
-        function showLoading(show) {
-            document.getElementById('loading').classList.toggle('show', show);
-            document.getElementById('step3').style.display = show ? 'none' : 'block';
+        function showLoading(show) { const ld = document.getElementById('loading'); if (ld) ld.classList.toggle('show', show); const s3 = document.getElementById('step3'); if (s3) s3.style.display = show ? 'none' : 'block'; }
+
+        function displayResults(result) { 
+            if (result?.error) { 
+                const eb = document.getElementById('errorBox'); 
+                if (eb) { eb.style.display = 'block'; eb.innerText = '❌ Error: ' + result.error; } 
+                return; 
+            } 
+            
+            // Hide Step 3 and show Results page
+            const step3 = document.getElementById('step3');
+            const results = document.getElementById('results');
+            if (step3) step3.style.display = 'none';
+            if (results) results.classList.add('show');
+            
+            // Populate results with data
+            if (document.getElementById('caseId')) document.getElementById('caseId').textContent = result.case_id || '-';
+            if (document.getElementById('riskLevel')) document.getElementById('riskLevel').textContent = result.risk_level || '-';
+            if (document.getElementById('riskScore')) document.getElementById('riskScore').textContent = result.risk_score || '-';
+            if (document.getElementById('ambulanceStatus')) document.getElementById('ambulanceStatus').textContent = (result.ambulance_assigned ? '✓ Assigned' : 'Not assigned') || '-';
+            if (document.getElementById('eta')) document.getElementById('eta').textContent = result.estimated_arrival_time || 'TBD';
+            if (document.getElementById('routedTo')) document.getElementById('routedTo').textContent = result.routed_to || '-';
         }
 
-        function displayResults(result) {
-            if (result.error) {
-                document.getElementById('errorBox').style.display = 'block';
-                document.getElementById('errorBox').innerText = '❌ Error: ' + result.error;
-                return;
-            }
-
-            // ✅ Hide action buttons
-            const actionButtons = document.getElementById('actionButtons');
-            if (actionButtons) {
-                actionButtons.style.display = 'none';
-            }
-
-            // ✅ Show success message
-            const successBox = document.getElementById('successBox');
-            if (successBox) {
-                successBox.style.display = 'block';
-                const caseIdText = document.getElementById('caseIdText');
-                if (caseIdText) {
-                    caseIdText.innerText = 'Case ID: ' + result.case_id;
-                }
-            }
-
-            // Optional: Log result for debugging
-            console.log('Assessment submitted successfully:', result);
+        function showError(msg) {
+            const eb = document.getElementById('errorBox');
+            if (eb) { eb.style.display = 'block'; eb.innerText = '❌ ' + msg; }
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) {}
+            setTimeout(() => { if (eb) eb.style.display = 'none'; }, 7000);
         }
 
-        function resetForm() {
-            document.getElementById('results').classList.remove('show');
-            document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], select, textarea').forEach(el => {
-                el.value = el.type === 'number' && el.id === 'painLevel' ? '0' : '';
-            });
-            currentStep = 1;
-            updateStepIndicator();
-            updateProgress();
-        }
+        function resetForm() { const results = document.getElementById('results'); if (results) results.classList.remove('show'); document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], select, textarea').forEach(el => el.value = ''); window.currentStep = 1; updateStepIndicator(); updateProgress(); }
     </script>
 
 

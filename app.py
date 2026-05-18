@@ -107,6 +107,14 @@ def map_incoming_parameters(data):
         'isUnidentified': 'is_unidentified',
         'is_unidentified': 'is_unidentified',
         'language': 'language',
+        'callType': 'call_type',
+        'call_type': 'call_type',
+        'dispatchType': 'dispatch_type',
+        'dispatch_type': 'dispatch_type',
+        'dispatchDate': 'dispatch_date',
+        'dispatch_date': 'dispatch_date',
+        'dispatchTime': 'dispatch_time',
+        'dispatch_time': 'dispatch_time',
     }
     
     # Map parameters
@@ -475,7 +483,7 @@ def submit_assessment():
     patient_name = data.get('patient_name', 'Patient')
     caller_name = data.get('caller_name', '')  # For unknown patient reports
     callback_phone = data.get('callback_phone', '')
-    patient_address = data.get('Location / Address', '')  # New field name format
+    patient_address = data.get('patient_address', '')  # Mapped from incAddress
     patient_age_years = data.get('patient_age_years', 0)
     patient_age_months = data.get('patient_age_months', 0)
     patient_age_in_months = data.get('age_in_months', 0)
@@ -486,6 +494,10 @@ def submit_assessment():
     medical_history = data.get('medical_history', '')
     language = data.get('language', 'en')
     symptom_duration = data.get('symptom_duration', '')
+    call_type = data.get('call_type', 'emergency')  # NEW: Emergency or Pre-booking
+    dispatch_type = data.get('dispatch_type', 'immediate')  # NEW: Immediate or Schedule (for pre-booking)
+    dispatch_date = data.get('dispatch_date', None)  # NEW: Scheduled date
+    dispatch_time = data.get('dispatch_time', None)  # NEW: Scheduled time
     
     # VALIDATION: Patient name must contain only letters, spaces, and hyphens
     if patient_name and not all(c.isalpha() or c.isspace() or c == '-' for c in patient_name):
@@ -499,9 +511,9 @@ def submit_assessment():
     if patient_age_years and (patient_age_years < 0 or patient_age_years > 150):
         return jsonify({'error': 'Age must be between 0 and 150 years'}), 400
     
-    # Extract geolocation data with new field names and validate
-    patient_lat = data.get('incLat')  # Incident Latitude
-    patient_lon = data.get('incLong')  # Incident Longitude
+    # Extract geolocation data with mapped field names and validate
+    patient_lat = data.get('patient_address_latitude')  # Incident Latitude (mapped from incLat)
+    patient_lon = data.get('patient_address_longitude')  # Incident Longitude (mapped from incLong)
     
     # VALIDATION: Latitude must be between -90 and 90
     if patient_lat is not None:
@@ -605,6 +617,11 @@ def submit_assessment():
             patient_state='State',
             callback_phone=callback_phone,
             caller_name=caller_name if not patient_known else patient_name,
+            # Call Type & Dispatch Information
+            call_type=call_type,
+            dispatch_type=dispatch_type,
+            scheduled_dispatch_date=dispatch_date,
+            scheduled_dispatch_time=dispatch_time,
             # ML prediction
             ml_risk_score=final_prediction['risk_score'],
             ml_confidence=final_prediction['confidence'],

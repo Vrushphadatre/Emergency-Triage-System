@@ -52,6 +52,12 @@ class TriageCase(Base):
     callback_phone = Column(String(20))
     caller_name = Column(String(200))
     
+    # Call Type & Dispatch (NEW: Pre-booking feature)
+    call_type = Column(String(20), default='emergency')  # 'emergency' or 'pre-booking'
+    dispatch_type = Column(String(20))  # 'immediate' or 'schedule' (for pre-booking)
+    scheduled_dispatch_date = Column(String(20), nullable=True)  # Date in YYYY-MM-DD format
+    scheduled_dispatch_time = Column(String(20), nullable=True)  # Time in HH:MM format
+    
     # Clinical data
     pain_level = Column(Integer)  # 1-10 scale
     duration_hours = Column(Float)
