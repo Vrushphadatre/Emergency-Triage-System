@@ -264,6 +264,10 @@ def api_active_cases():
                 'estimated_arrival_time': None,
                 'ambulance_type': ambulance_type,  # NEW: ALS or BLS
                 'prerarrival_instructions': instructions,  # NEW: Instructions
+                'call_type': c.call_type or 'emergency',
+                'dispatch_type': c.dispatch_type,
+                'scheduled_dispatch_date': c.scheduled_dispatch_date,
+                'scheduled_dispatch_time': c.scheduled_dispatch_time,
                 'created_at': c.created_at.isoformat() if c.created_at else None
             })
         

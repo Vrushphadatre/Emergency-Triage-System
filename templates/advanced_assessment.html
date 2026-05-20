@@ -954,41 +954,6 @@
                 <p>Processing assessment...</p>
             </div>
         </div>
-
-        <!-- Results Display -->
-        <div class="results" id="results">
-                <div class="result-icon" id="resultIcon">✓</div>
-                <div class="result-title" id="resultTitle">Assessment Complete</div>
-                <div class="result-details">
-                    <div class="result-item">
-                        <span class="result-label">Case ID:</span>
-                        <span class="result-value" id="caseId">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Risk Level:</span>
-                        <span class="result-value" id="riskLevel">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Risk Score:</span>
-                        <span class="result-value" id="riskScore">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Ambulance Status:</span>
-                        <span class="result-value" id="ambulanceStatus">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">ETA:</span>
-                        <span class="result-value" id="eta">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Routed To:</span>
-                        <span class="result-value" id="routedTo">-</span>
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="resetForm()" style="margin-top: 20px; width: 100%;">New
-                    Assessment</button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -1023,16 +988,28 @@
             if (btn) btn.disabled = true;
             if (status) status.textContent = '';
             if (coords) coords.textContent = '';
-            fetch('https://ipapi.co/json/').then(r => r.json()).then(data => {
-                const lat = parseFloat(data.latitude).toFixed(6);
-                const lon = parseFloat(data.longitude).toFixed(6);
-                geoCoordinates = { lat, lon };
-                const locationStr = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
-                if (locationInput) locationInput.value = locationStr;
-                if (status) { status.textContent = `✓ Location detected (${data.city || ''}, ${data.region || ''})`; status.style.color = '#5cb85c'; }
-                if (coords) coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
-                if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate (✓)'; }
-            }).catch(() => { if (status) { status.textContent = 'Could not detect location. Please enter address manually.'; status.style.color = '#d9534f'; } if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate'; } });
+            
+            if (!navigator.geolocation) {
+                if (status) { status.textContent = 'GPS not available. Please enter address manually.'; status.style.color = '#d9534f'; }
+                if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate'; }
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = parseFloat(position.coords.latitude).toFixed(6);
+                    const lon = parseFloat(position.coords.longitude).toFixed(6);
+                    geoCoordinates = { lat, lon };
+                    if (status) { status.textContent = `✓ GPS detected (Lat: ${lat}, Lon: ${lon})`; status.style.color = '#5cb85c'; }
+                    if (coords) coords.textContent = `Lat: ${lat}, Lon: ${lon}`;
+                    if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate (✓)'; }
+                },
+                (error) => {
+                    if (status) { status.textContent = 'Could not access GPS. Please enter address manually. Error: ' + error.message; status.style.color = '#d9534f'; }
+                    if (btn) { btn.disabled = false; btn.textContent = '📍 Auto-Locate'; }
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
         }
 
         function getAgeInMonths() {
@@ -1264,32 +1241,14 @@
                 ...dispatchInfo
             };
             fetch('/submit_assessment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(assessmentData) })
-                .then(r => r.json()).then(result => { showLoading(false); displayResults(result); })
+                .then(r => r.json()).then(result => { showLoading(false); if (result?.error) { showError(result.error); } else { alert('✓ Assessment submitted successfully!\n\nCase ID: ' + result.case_id); resetForm(); } })
                 .catch(err => { showLoading(false); alert('Error: ' + (err.message || err)); });
         }
 
         function showLoading(show) { const ld = document.getElementById('loading'); if (ld) ld.classList.toggle('show', show); const s3 = document.getElementById('step3'); if (s3) s3.style.display = show ? 'none' : 'block'; }
 
         function displayResults(result) { 
-            if (result?.error) { 
-                const eb = document.getElementById('errorBox'); 
-                if (eb) { eb.style.display = 'block'; eb.innerText = '❌ Error: ' + result.error; } 
-                return; 
-            } 
-            
-            // Hide Step 3 and show Results page
-            const step3 = document.getElementById('step3');
-            const results = document.getElementById('results');
-            if (step3) step3.style.display = 'none';
-            if (results) results.classList.add('show');
-            
-            // Populate results with data
-            if (document.getElementById('caseId')) document.getElementById('caseId').textContent = result.case_id || '-';
-            if (document.getElementById('riskLevel')) document.getElementById('riskLevel').textContent = result.risk_level || '-';
-            if (document.getElementById('riskScore')) document.getElementById('riskScore').textContent = result.risk_score || '-';
-            if (document.getElementById('ambulanceStatus')) document.getElementById('ambulanceStatus').textContent = (result.ambulance_assigned ? '✓ Assigned' : 'Not assigned') || '-';
-            if (document.getElementById('eta')) document.getElementById('eta').textContent = result.estimated_arrival_time || 'TBD';
-            if (document.getElementById('routedTo')) document.getElementById('routedTo').textContent = result.routed_to || '-';
+            // Results page removed - submission now shows success alert and resets form
         }
 
         function showError(msg) {
@@ -1299,7 +1258,15 @@
             setTimeout(() => { if (eb) eb.style.display = 'none'; }, 7000);
         }
 
-        function resetForm() { const results = document.getElementById('results'); if (results) results.classList.remove('show'); document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], select, textarea').forEach(el => el.value = ''); window.currentStep = 1; updateStepIndicator(); updateProgress(); }
+        function resetForm() { 
+            document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], select, textarea').forEach(el => el.value = ''); 
+            geoCoordinates = { lat: null, lon: null };
+            window.currentStep = 1; 
+            updateStepIndicator(); 
+            updateProgress(); 
+            updateCallTypeView();
+            updateDispatchView();
+        }
     </script>
 
 

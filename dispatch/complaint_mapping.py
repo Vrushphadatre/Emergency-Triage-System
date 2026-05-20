@@ -39,7 +39,7 @@ COMPLAINT_TO_AMBULANCE_TYPE = {
     "Head injury": "ALS",
     "Severe headache": "ALS",
     "Severe dizziness": "ALS",
-    "Weakness/Numbness": "ALS",
+    "Weakness/Numbness (severe)": "ALS",
     "Severe back pain": "ALS",
     "Suspected fracture (leg)": "ALS",
     "Heavy bleeding": "ALS",
@@ -50,6 +50,8 @@ COMPLAINT_TO_AMBULANCE_TYPE = {
     "Pregnancy complications": "ALS",
     
     # ========== ROUTINE - BLS ==========
+    "Weakness": "BLS",
+    "Numbness": "BLS",
     "Minor cut/wound": "BLS",
     "Abdominal pain (mild)": "BLS",
     "Headache": "BLS",
@@ -105,7 +107,20 @@ def get_ambulance_type(chief_complaint: str) -> str:
         'seizure', 'paralysis', 'unconsciousness'
     ]
     
+    # BLS keywords - these override ALS default
+    bls_keywords = [
+        'weakness', 'numbness', 'minor', 'pain', 'ache', 'headache',
+        'dizziness', 'nausea', 'vomiting', 'fever', 'cough', 'sore throat',
+        'rash', 'irritation', 'strain', 'sprain', 'infection'
+    ]
+    
     complaint_lower = chief_complaint.lower()
+    
+    # Check BLS keywords first - they override ALS default
+    if any(keyword in complaint_lower for keyword in bls_keywords):
+        return "BLS"
+    
+    # Check ALS keywords
     if any(keyword in complaint_lower for keyword in als_keywords):
         return "ALS"
     

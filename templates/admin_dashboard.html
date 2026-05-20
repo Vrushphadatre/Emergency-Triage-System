@@ -769,6 +769,22 @@
                     <div class="detail-value" style="font-size: 12px; color: var(--text);">${caseData.medical_history || 'None reported'}</div>
                 </div>
                 <div class="detail-row">
+                    <div class="detail-label">Call Type:</div>
+                    <div class="detail-value">${caseData.call_type === 'emergency' ? '🚨 Emergency' : '📅 Pre-booking'}</div>
+                </div>
+                ${caseData.call_type === 'pre-booking' && caseData.dispatch_type ? `<div class="detail-row">
+                    <div class="detail-label">Dispatch Type:</div>
+                    <div class="detail-value">${caseData.dispatch_type === 'immediate' ? '⚡ Immediate' : '📅 Scheduled'}</div>
+                </div>` : ''}
+                ${caseData.call_type === 'pre-booking' && caseData.scheduled_dispatch_date ? `<div class="detail-row">
+                    <div class="detail-label">Scheduled Date:</div>
+                    <div class="detail-value">${caseData.scheduled_dispatch_date}</div>
+                </div>` : ''}
+                ${caseData.call_type === 'pre-booking' && caseData.scheduled_dispatch_time ? `<div class="detail-row">
+                    <div class="detail-label">Scheduled Time:</div>
+                    <div class="detail-value">${caseData.scheduled_dispatch_time}</div>
+                </div>` : ''}
+                <div class="detail-row">
                     <div class="detail-label">Ambulance:</div>
                     <div class="detail-value">${caseData.ambulance_assigned ? 'Assigned' : 'Not assigned'}</div>
                 </div>
